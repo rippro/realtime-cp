@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SetupCodeBlock } from "./SetupCodeBlock";
 
 interface Props {
   eventId: string;
@@ -86,16 +87,11 @@ export function SetupTokenSection({ eventId, isSolver }: Props) {
 
       {/* .rippro-judge.json */}
       <section>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-rp-100">
-            3. 設定ファイル (.rippro-judge.json)
-          </h2>
-          <CopyButton text={configJson} />
-        </div>
+        <h2 className="text-sm font-semibold text-rp-100 mb-2">
+          3. 設定ファイル (.rippro-judge.json)
+        </h2>
         <p className="text-sm text-rp-muted mb-2">提出作業ディレクトリに配置。</p>
-        <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto whitespace-pre">
-          {configJson}
-        </pre>
+        <SetupCodeBlock code={configJson} />
       </section>
     </div>
   );

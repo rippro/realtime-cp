@@ -1,5 +1,6 @@
-import { getSession } from "@/lib/auth/session";
+import { SetupCodeBlock } from "@/components/setup/SetupCodeBlock";
 import { SetupTokenSection } from "@/components/setup/SetupTokenSection";
+import { getSession } from "@/lib/auth/session";
 
 interface PageProps {
   params: Promise<{ eventId: string }>;
@@ -19,19 +20,19 @@ export default async function SetupPage({ params }: PageProps) {
       <div className="space-y-8">
         <section>
           <h2 className="text-sm font-semibold text-rp-100 mb-2">1. インストール</h2>
-          <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto">npm install -g @rippro/judge@latest</pre>
+          <SetupCodeBlock code="npm install -g @rippro/judge@latest" />
         </section>
 
         <section>
           <h2 className="text-sm font-semibold text-rp-100 mb-2">2. 初期化</h2>
-          <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto">{`rj init --event ${eventId} --token <TOKEN>`}</pre>
+          <SetupCodeBlock code={`rj init`} />
         </section>
 
         <SetupTokenSection eventId={eventId} isSolver={isSolver} />
 
         <section>
           <h2 className="text-sm font-semibold text-rp-100 mb-2">4. 提出</h2>
-          <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto">{`rj submit H7C solution.cpp\nrj submit H7C solution.py`}</pre>
+          <SetupCodeBlock code={`rj submit H7C solution.cpp\nrj submit H7C solution.py`} />
         </section>
 
         {(session?.role === "admin" || session?.role === "creator") && (

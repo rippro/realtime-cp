@@ -31,7 +31,7 @@ export default async function SetupPage({ params }: PageProps) {
 
         <section>
           <h2 className="text-sm font-semibold text-rp-100 mb-2">4. 提出</h2>
-          <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto">{`rj submit A solution.cpp\nrj submit A solution.py`}</pre>
+          <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-sm font-mono text-rp-300 overflow-x-auto">{`rj submit H7C solution.cpp\nrj submit H7C solution.py`}</pre>
         </section>
 
         {(session?.role === "admin" || session?.role === "creator") && (

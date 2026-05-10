@@ -50,6 +50,9 @@ only hashes.
 Team member roles are `admin`, `creator`, and `solver`. CLI tokens can only be issued for `solver`
 members.
 
+For the creator-facing API that creates a problem and its testcases in one request, see
+`PROBLEM_CREATION_API.md`.
+
 ## Repository Boundary
 
 Keep future portable CLI code under `src/*` when it is independent of Next.js and Firebase. Keep the

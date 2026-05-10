@@ -1,16 +1,17 @@
 import type { Timestamp } from "firebase-admin/firestore";
 import Link from "next/link";
-import { getSession } from "@/lib/auth/session";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 
 interface PageProps {
   params: Promise<{ eventId: string }>;
 }
 
-async function getProblems(eventId: string, showAll: boolean) {
+async function getProblems(eventId: string) {
   const db = getAdminFirestore();
-  let query = db.collection("problems").where("eventId", "==", eventId);
-  if (!showAll) query = query.where("isPublished", "==", true) as typeof query;
+  const query = db
+    .collection("problems")
+    .where("eventId", "==", eventId)
+    .where("isPublished", "==", true);
   const snap = await query.orderBy("id", "asc").get();
   return snap.docs.map((doc) => {
     const d = doc.data();
@@ -43,11 +44,9 @@ async function getSolveCountByProblem(eventId: string) {
 export default async function ProblemsPage({ params }: PageProps) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
-  const session = await getSession();
-  const showAll = session?.role === "admin" || session?.role === "creator";
 
   const [problems, solves] = await Promise.all([
-    getProblems(eventId, showAll).catch((error: unknown) => {
+    getProblems(eventId).catch((error: unknown) => {
       console.error("Failed to render problems page", error);
       return [];
     }),

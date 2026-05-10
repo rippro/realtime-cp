@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-
 import "./globals.css";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
   title: "RipPro Judge",
-  description: "競プロ新歓イベント向けの簡易ジャッジ補助システム",
+  description: "競プロ新歓イベント向けローカル実行ジャッジシステム",
 };
 
 export default function RootLayout({
@@ -15,8 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className="bg-background text-foreground antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="bg-rp-900 text-rp-100 antialiased">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

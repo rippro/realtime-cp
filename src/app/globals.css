@@ -1,64 +1,200 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
-  }
+    /* RipPro Design Tokens — Deep Navy */
+    /* Source: realtimecolors text=#e0eaf4 bg=#060d15 primary=#92b7e2 secondary=#1f4f87 accent=#438adb */
+    --rp-900: #060d15;
+    --rp-800: #0b1624;
+    --rp-700: #0f1f33;
+    --rp-600: #162a46;
+    --rp-500: #1f4f87;   /* secondary */
+    --rp-400: #438adb;   /* accent — main interactive */
+    --rp-300: #92b7e2;   /* primary — lighter blue */
+    --rp-100: #e0eaf4;   /* text */
+    --rp-muted: #5a80a8;
+    --rp-accent: #e05c4a;   /* coral — errors/destructive */
+    --rp-accent-light: #f0a89e;
+    --rp-success: #1fb897;
+    --rp-warning: #e8a020;
+    --rp-border: #1a3a5c;
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* Semantic tokens */
+    --background: 210 56% 6%;
+    --foreground: 210 47% 92%;
+    --card: 212 52% 9%;
+    --card-foreground: 210 47% 92%;
+    --popover: 212 52% 9%;
+    --popover-foreground: 210 47% 92%;
+    --primary: 210 64% 55%;
+    --primary-foreground: 210 47% 92%;
+    --secondary: 214 63% 32%;
+    --secondary-foreground: 210 47% 92%;
+    --muted: 212 45% 14%;
+    --muted-foreground: 210 30% 55%;
+    --accent: 210 64% 55%;
+    --accent-foreground: 210 47% 92%;
+    --destructive: 7 72% 58%;
+    --destructive-foreground: 210 47% 92%;
+    --border: 212 53% 23%;
+    --input: 212 45% 14%;
+    --ring: 210 64% 55%;
+    --radius: 0.5rem;
   }
 }
 
 @layer base {
   * {
     border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: var(--rp-900);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+    background-color: var(--rp-900);
+    color: var(--rp-100);
+    font-family: "DM Sans", sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Syne", sans-serif;
+    font-weight: 700;
+  }
+
+  code, pre, .font-mono {
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--rp-900);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rp-600);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--rp-500);
+  }
+}
+
+@layer components {
+  .nav-glass {
+    background: rgba(7, 7, 26, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--rp-border);
+  }
+
+  .card-surface {
+    background: var(--rp-800);
+    border: 1px solid var(--rp-border);
+    border-radius: 12px;
+  }
+
+  .badge-active {
+    background: rgba(31, 184, 151, 0.15);
+    color: var(--rp-success);
+    border: 1px solid rgba(31, 184, 151, 0.3);
+  }
+
+  .badge-inactive {
+    background: rgba(90, 128, 168, 0.12);
+    color: var(--rp-muted);
+    border: 1px solid rgba(90, 128, 168, 0.25);
+  }
+
+  .btn-primary {
+    background: var(--rp-400);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: "Inter", "DM Sans", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: var(--rp-300);
+    color: var(--rp-900);
+    transform: translateY(-1px);
+  }
+
+  .btn-accent {
+    background: var(--rp-accent);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: "Inter", "DM Sans", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-accent:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--rp-muted);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: "Inter", "DM Sans", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    transition: all 0.2s;
+    border: 1px solid var(--rp-border);
+    cursor: pointer;
+  }
+  .btn-ghost:hover {
+    color: var(--rp-100);
+    border-color: var(--rp-400);
+    background: rgba(67, 138, 219, 0.08);
+  }
+
+  .input-field {
+    background: var(--rp-700);
+    border: 1px solid var(--rp-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--rp-100);
+    font-family: "Inter", "DM Sans", sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+    width: 100%;
+  }
+  .input-field::placeholder {
+    color: var(--rp-muted);
+  }
+  .input-field:focus {
+    border-color: var(--rp-400);
+    box-shadow: 0 0 0 2px rgba(67, 138, 219, 0.2);
+  }
+
+  .status-ac {
+    color: var(--rp-success);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
   }
 }

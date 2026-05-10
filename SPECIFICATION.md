@@ -283,6 +283,17 @@ Authorization: Bearer <token>
 
 ## 6. Web UI向け API（主要エンドポイント）
 
+参加者向けの一覧画面で即時反映が必要な read は、Firestore Web SDK からクライアントサイドで
+直接購読してよい。対象は `events`, `problems`, `teams`, `teamMembers`, `solves` の read-only
+公開ルールとし、write はサーバー API / Admin SDK 経由に限定する。
+
+問題一覧画面は `events/{eventId}`、`problems`、`solves`、ログイン中 solver の `teamMembers` と
+`teams` を `onSnapshot` で購読し、公開問題、AC 数、自チームの solved 表示をリロードなしで更新する。
+ポイント順の昇順・降順切り替えは、取得済みデータをメモリ上でソートする。
+
+チームランキング画面は `teams`、`problems`、`solves` を `onSnapshot` で購読し、`solveCount` と
+`totalPoints` をクライアント側で再計算してリロードなしで更新する。
+
 ### イベント
 
 - `GET /api/events` — イベント一覧（`id`, `isActive`）
@@ -302,7 +313,7 @@ Authorization: Bearer <token>
 
 ### チーム・CLIトークン
 
-- `GET /api/events/:eventId/teams` — チーム一覧（solveCount, totalPoints 付き、得点降順）
+- `GET /api/events/:eventId/teams` — チーム一覧（solveCount, totalPoints 付き、得点降順）。即時反映が必要な画面では Firestore 直読みに置き換えてよい。
 - `POST /api/events/:eventId/teams` — チーム作成（solver のみ）
 - `GET /api/events/:eventId/token` — CLIトークン取得（なければ自動発行、solver のみ）
 

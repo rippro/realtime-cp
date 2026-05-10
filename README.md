@@ -27,7 +27,9 @@ constraints in Firestore transactions:
 - primary keys use deterministic document IDs where the specification defines a composite key
 - foreign keys are checked before writes
 - unique keys that are not document IDs are guarded by `_unique/*` marker documents
-- `firestore.rules` denies all direct client access so writes go through the Admin SDK API
+- `firestore.rules` allows read-only client access to `events`, `problems`, `teams`,
+  `teamMembers`, and `solves` for realtime list screens. Writes still go through the
+  Admin SDK API.
 
 Deploy `firebase.json`, `firestore.rules`, and `firestore.indexes.json` to install the Firestore
 rules and query indexes for this schema.

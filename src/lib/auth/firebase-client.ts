@@ -1,7 +1,8 @@
 "use client";
 
 import { getApps, initializeApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { type Auth, getAuth } from "firebase/auth";
+import { type Firestore, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
@@ -13,11 +14,22 @@ const firebaseConfig = {
 };
 
 let _auth: Auth | null = null;
+let _firestore: Firestore | null = null;
+
+function getClientApp() {
+  return getApps()[0] ?? initializeApp(firebaseConfig);
+}
 
 export function getClientAuth(): Auth {
   if (!_auth) {
-    const app = getApps()[0] ?? initializeApp(firebaseConfig);
-    _auth = getAuth(app);
+    _auth = getAuth(getClientApp());
   }
   return _auth;
+}
+
+export function getClientFirestore(): Firestore {
+  if (!_firestore) {
+    _firestore = getFirestore(getClientApp());
+  }
+  return _firestore;
 }

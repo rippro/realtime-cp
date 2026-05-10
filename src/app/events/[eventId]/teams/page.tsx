@@ -1,9 +1,11 @@
 "use client";
 
+import { collection, onSnapshot, query, type Timestamp, where } from "firebase/firestore";
 import { Check, Copy, Plus, TriangleAlert } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getClientFirestore } from "@/lib/auth/firebase-client";
 
 interface Team {
   id: string;
@@ -11,6 +13,23 @@ interface Team {
   solveCount: number;
   totalPoints: number;
   createdAt: string;
+}
+
+interface ProblemPoints {
+  id: string;
+  points: number;
+}
+
+interface Solve {
+  teamId: string;
+  problemId: string;
+}
+
+function timestampToIso(value: unknown): string {
+  if (value && typeof (value as Timestamp).toDate === "function") {
+    return (value as Timestamp).toDate().toISOString();
+  }
+  return new Date(0).toISOString();
 }
 
 function CreateTeamForm({ eventId, onCreated }: { eventId: string; onCreated: (t: Team) => void }) {
@@ -122,19 +141,96 @@ export default function TeamsPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const { session, loading: authLoading } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
+  const [problemPoints, setProblemPoints] = useState<ProblemPoints[]>([]);
+  const [solves, setSolves] = useState<Solve[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/events/${eventId}/teams`)
-      .then((r) => {
-        if (r.status === 401) throw new Error("ログインが必要です");
-        return r.json() as Promise<{ teams: Team[] }>;
-      })
-      .then((d) => setTeams(d.teams ?? []))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+    const db = getClientFirestore();
+    setLoading(true);
+
+    const unsubscribers = [
+      onSnapshot(
+        query(collection(db, "teams"), where("eventId", "==", eventId)),
+        (snapshot) => {
+          setTeams(
+            snapshot.docs.map((teamDoc) => {
+              const d = teamDoc.data();
+              return {
+                id: teamDoc.id,
+                name: String(d.name ?? ""),
+                solveCount: 0,
+                totalPoints: 0,
+                createdAt: timestampToIso(d.createdAt),
+              };
+            }),
+          );
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message);
+          setLoading(false);
+        },
+      ),
+      onSnapshot(
+        query(collection(db, "problems"), where("eventId", "==", eventId)),
+        (snapshot) => {
+          setProblemPoints(
+            snapshot.docs.map((problemDoc) => {
+              const d = problemDoc.data();
+              return {
+                id: String(d.id ?? problemDoc.id),
+                points: Number(d.points ?? 100),
+              };
+            }),
+          );
+        },
+        (err) => setError(err.message),
+      ),
+      onSnapshot(
+        query(collection(db, "solves"), where("eventId", "==", eventId)),
+        (snapshot) => {
+          setSolves(
+            snapshot.docs.map((solveDoc) => {
+              const d = solveDoc.data();
+              return {
+                teamId: String(d.teamId ?? ""),
+                problemId: String(d.problemId ?? ""),
+              };
+            }),
+          );
+        },
+        (err) => setError(err.message),
+      ),
+    ];
+
+    return () => {
+      for (const unsubscribe of unsubscribers) unsubscribe();
+    };
   }, [eventId]);
+
+  const rankedTeams = useMemo(() => {
+    const pointsByProblem = new Map(
+      problemPoints.map((problem) => [problem.id, problem.points] as const),
+    );
+    const solvesByTeam = new Map<string, { count: number; points: number }>();
+
+    for (const solve of solves) {
+      const prev = solvesByTeam.get(solve.teamId) ?? { count: 0, points: 0 };
+      solvesByTeam.set(solve.teamId, {
+        count: prev.count + 1,
+        points: prev.points + (pointsByProblem.get(solve.problemId) ?? 100),
+      });
+    }
+
+    return teams
+      .map((team) => {
+        const score = solvesByTeam.get(team.id) ?? { count: 0, points: 0 };
+        return { ...team, solveCount: score.count, totalPoints: score.points };
+      })
+      .sort((a, b) => b.totalPoints - a.totalPoints || a.name.localeCompare(b.name));
+  }, [problemPoints, solves, teams]);
 
   const isSolver = !authLoading && session?.role === "solver";
 
@@ -157,13 +253,13 @@ export default function TeamsPage() {
         <div className="card-surface p-8 text-center">
           <p className="text-rp-muted">{error}</p>
         </div>
-      ) : teams.length === 0 ? (
+      ) : rankedTeams.length === 0 ? (
         <div className="card-surface p-16 text-center">
           <p className="text-rp-muted">チームはまだ登録されていません</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {teams.map((team, i) => (
+          {rankedTeams.map((team, i) => (
             <div key={team.id} className="card-surface flex items-center gap-4 px-5 py-4">
               <div
                 className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-mono text-sm font-bold ${

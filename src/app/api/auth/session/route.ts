@@ -1,8 +1,7 @@
-import { getAuth } from "firebase-admin/auth";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createSessionCookie, sessionCookieOptions } from "@/lib/auth/session";
-import { getAdminFirestore } from "@/lib/firebase/admin";
+import { getAdminAuth } from "@/lib/firebase/admin";
 import type { GoogleSession } from "@/lib/auth/types";
 
 export const runtime = "nodejs";
@@ -15,12 +14,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "idToken required" }, { status: 400 });
     }
 
-    // Ensure Firebase Admin is initialized before calling getAuth()
-    getAdminFirestore();
-
-    let decoded: Awaited<ReturnType<ReturnType<typeof getAuth>["verifyIdToken"]>>;
+    const adminAuth = getAdminAuth();
+    let decoded: Awaited<ReturnType<typeof adminAuth.verifyIdToken>>;
     try {
-      decoded = await getAuth().verifyIdToken(idToken);
+      decoded = await adminAuth.verifyIdToken(idToken);
     } catch (verifyErr) {
       console.error("verifyIdToken failed:", verifyErr);
       return NextResponse.json({ error: "Invalid ID token" }, { status: 401 });
@@ -46,7 +43,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ role, email, name: session.name });
   } catch (err) {
-    console.error("session route error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("session route error:", msg);
+    // Common causes: SESSION_SECRET not set, Firebase Admin credentials missing
+    return NextResponse.json({ error: "Internal error", detail: msg }, { status: 500 });
   }
 }

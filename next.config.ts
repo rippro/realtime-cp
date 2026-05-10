@@ -17,6 +17,17 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // Firebase signInWithPopup requires allow-popups (not the default same-origin)
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+        ],
+      },
+    ];
+  },
 };
 
 if (basePathEnv) {

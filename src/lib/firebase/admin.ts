@@ -1,31 +1,34 @@
-import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+import { applicationDefault, cert, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-function getServiceAccountCredential() {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+function getAdminApp(): App {
+  const existing = getApps()[0];
+  if (existing) return existing;
 
-  if (serviceAccountJson) {
-    return cert(JSON.parse(serviceAccountJson) as Parameters<typeof cert>[0]);
+  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? "serviceAccountKey.json";
+  const absPath = resolve(process.cwd(), serviceAccountPath);
+
+  try {
+    const json = JSON.parse(readFileSync(absPath, "utf-8")) as Record<string, string>;
+    const projectId = json.project_id;
+    return initializeApp({
+      credential: cert(json as Parameters<typeof cert>[0]),
+      ...(projectId ? { projectId } : {}),
+    });
+  } catch {
+    return initializeApp({ credential: applicationDefault() });
   }
-
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (projectId && clientEmail && privateKey) {
-    return cert({ projectId, clientEmail, privateKey });
-  }
-
-  return applicationDefault();
 }
 
 export function getAdminFirestore() {
-  const appOptions = {
-    credential: getServiceAccountCredential(),
-    ...(process.env.FIREBASE_PROJECT_ID ? { projectId: process.env.FIREBASE_PROJECT_ID } : {}),
-  };
-  const app = getApps()[0] ?? initializeApp(appOptions);
-
+  const app = getAdminApp();
   const databaseId = process.env.FIRESTORE_DATABASE_ID;
   return databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+}
+
+export function getAdminAuth() {
+  return getAuth(getAdminApp());
 }

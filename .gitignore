@@ -59,4 +59,4 @@ web/.next
 
 
 
-*.json
+serviceAccountKey.json

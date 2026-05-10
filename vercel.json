@@ -1,0 +1,21 @@
+{
+  "framework": "nextjs",
+  "regions": ["nrt1"],
+  "env": {
+    "SESSION_SECRET": "@rippro-session-secret",
+    "RJ_ADMIN_TOKEN": "@rippro-admin-token",
+    "ADMIN_EMAILS": "@rippro-admin-emails",
+    "FIREBASE_SERVICE_ACCOUNT_PATH": "@rippro-firebase-service-account-path",
+    "FIRESTORE_DATABASE_ID": "@rippro-firestore-database-id"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_FIREBASE_API_KEY": "@rippro-firebase-api-key",
+      "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "@rippro-firebase-auth-domain",
+      "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "@rippro-firebase-project-id",
+      "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "@rippro-firebase-storage-bucket",
+      "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "@rippro-firebase-messaging-sender-id",
+      "NEXT_PUBLIC_FIREBASE_APP_ID": "@rippro-firebase-app-id"
+    }
+  }
+}

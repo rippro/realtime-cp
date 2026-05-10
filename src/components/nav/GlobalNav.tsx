@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { getSessionDisplayName } from "@/lib/auth/types";
 import { getRecentAccounts, removeRecentAccount, type RecentAccount } from "@/lib/auth/recent-accounts";
@@ -178,6 +179,7 @@ function AccountMenu({
 
 export function GlobalNav() {
   const { session, loading, logout, refresh } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginInitialTab, setLoginInitialTab] = useState<"google" | "solver-login" | "solver-signup" | undefined>();
@@ -254,6 +256,23 @@ export function GlobalNav() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-rp-muted hover:text-rp-100 hover:bg-rp-800 transition-colors"
+              aria-label="テーマ切替"
+            >
+              {theme === "dark" ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="5" />
+                  <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                  <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+              )}
+            </button>
             {!loading && (
               session ? (
                 <AccountMenu onLogout={logout} onSwitch={openSwitch} />

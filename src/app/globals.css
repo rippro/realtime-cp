@@ -45,6 +45,45 @@
     --ring: 180 47% 12%;
     --radius: 0.375rem;
   }
+
+  .dark {
+    --rp-900: #111111;
+    --rp-800: #1a1a1a;
+    --rp-700: #242424;
+    --rp-600: #2e2e2e;
+    --rp-500: #a0a09e;
+    --rp-400: #1e6a6a;
+    --rp-300: #c0c0c0;
+    --rp-100: #ececec;
+    --rp-muted: #666666;
+    --rp-accent: #cc3322;
+    --rp-accent-light: #4a1a16;
+    --rp-highlight: #6b8de0;
+    --rp-highlight-tint: #1a2240;
+    --rp-success: #2aaa7a;
+    --rp-warning: #cc9922;
+    --rp-border: #2a2a2a;
+
+    --background: 0 0% 7%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 180 55% 27%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 180 55% 27%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 5 65% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 16%;
+    --input: 0 0% 15%;
+    --ring: 180 55% 27%;
+  }
 }
 
 @layer base {
@@ -108,7 +147,7 @@
 
 @layer components {
   .nav-glass {
-    background: rgba(255, 255, 255, 0.96);
+    background: color-mix(in srgb, var(--rp-900) 96%, transparent);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--rp-border);

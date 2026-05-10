@@ -57,7 +57,7 @@ export default async function EventsPage() {
                     <div className="flex items-center gap-5">
                       <div
                         className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          isLive ? "bg-rp-highlight" : "bg-rp-600"
+                          isLive ? "bg-rp-accent" : "bg-rp-600"
                         }`}
                       />
                       <div>
@@ -72,7 +72,7 @@ export default async function EventsPage() {
                     <div className="flex items-center gap-4">
                       <span
                         className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
-                          isLive ? "badge-active" : "badge-inactive"
+                          isLive ? "badge-live" : "badge-inactive"
                         }`}
                       >
                         {statusLabel}

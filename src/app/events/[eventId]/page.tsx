@@ -70,7 +70,7 @@ export default async function EventHomePage({ params }: PageProps) {
             <div className="flex items-center gap-3 mb-3">
               <span
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
-                  isLive ? "badge-active" : "badge-inactive"
+                  isLive ? "badge-live" : "badge-inactive"
                 }`}
               >
                 {statusLabel}

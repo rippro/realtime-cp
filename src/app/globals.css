@@ -171,6 +171,12 @@
     border: 1px solid rgba(12, 96, 68, 0.22);
   }
 
+  .badge-live {
+    background: rgba(170, 36, 24, 0.1);
+    color: var(--rp-accent);
+    border: 1px solid rgba(170, 36, 24, 0.25);
+  }
+
   .badge-inactive {
     background: var(--rp-800);
     color: var(--rp-muted);

@@ -451,7 +451,7 @@ export default function CreatorPage() {
                         </span>
                       )}
                       {p.isPublished && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-active">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-live">
                           LIVE
                         </span>
                       )}

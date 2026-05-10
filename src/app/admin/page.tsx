@@ -392,7 +392,7 @@ export default function AdminPage() {
                         <span
                           className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
                             statusLabel === "LIVE"
-                              ? "badge-active"
+                              ? "badge-live"
                               : "text-rp-muted border-rp-border"
                           }`}
                         >
@@ -548,7 +548,7 @@ export default function AdminPage() {
                           </span>
                         )}
                         {p.isPublished && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-active">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-live">
                             LIVE
                           </span>
                         )}

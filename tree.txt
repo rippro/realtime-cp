@@ -3,34 +3,162 @@
 ├── SPECIFICATION.md
 ├── TODO.md
 ├── biome.json
+├── data
+├── firebase-debug.log
+├── firebase.json
+├── firestore.indexes.json
+├── firestore.rules
+├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
+├── prompt.md
 ├── public
 │   ├── favicon.png
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   └── window.svg
+├── render.yaml
+├── scripts
+│   ├── create-problem.js
+│   ├── encode2env.sh
+│   └── prompt.md
+├── serviceAccountKey.json
 ├── src
 │   ├── app
+│   │   ├── account
+│   │   │   └── page.tsx
+│   │   ├── admin
+│   │   │   ├── cli-tokens
+│   │   │   │   └── route.ts
+│   │   │   ├── events
+│   │   │   │   └── route.ts
+│   │   │   ├── page.tsx
+│   │   │   ├── problems
+│   │   │   │   └── route.ts
+│   │   │   ├── team-members
+│   │   │   │   └── route.ts
+│   │   │   ├── teams
+│   │   │   │   └── route.ts
+│   │   │   ├── testcase-versions
+│   │   │   └── users
+│   │   │       └── route.ts
+│   │   ├── api
+│   │   │   ├── admin
+│   │   │   │   ├── events
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── users
+│   │   │   │       └── route.ts
+│   │   │   ├── auth
+│   │   │   │   ├── logout
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── me
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── register
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── restore
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── session
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── solver
+│   │   │   │       └── route.ts
+│   │   │   └── events
+│   │   │       ├── [eventId]
+│   │   │       │   ├── problems
+│   │   │       │   │   ├── [problemId]
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   ├── bulk
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   ├── teams
+│   │   │       │   │   └── route.ts
+│   │   │       │   └── token
+│   │   │       │       └── route.ts
+│   │   │       └── route.ts
+│   │   ├── creator
+│   │   │   └── page.tsx
+│   │   ├── events
+│   │   │   ├── [eventId]
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── loading.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── problems
+│   │   │   │   │   ├── [problemId]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── loading.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── settings
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── setup
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── submissions
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── teams
+│   │   │   │       └── page.tsx
+│   │   │   ├── loading.tsx
+│   │   │   └── page.tsx
 │   │   ├── globals.css
+│   │   ├── judge
+│   │   │   └── events
+│   │   │       └── [eventId]
+│   │   │           └── problems
+│   │   │               └── [problemId]
+│   │   │                   ├── config
+│   │   │                   │   └── route.ts
+│   │   │                   ├── submissions
+│   │   │                   │   └── route.ts
+│   │   │                   └── testcases
+│   │   │                       └── route.ts
 │   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
 │   │   └── page.tsx
-│   └── contexts
-│       └── ThemeContext.tsx
+│   ├── components
+│   │   ├── auth
+│   │   │   └── LoginModal.tsx
+│   │   ├── nav
+│   │   │   ├── EventNav.tsx
+│   │   │   └── GlobalNav.tsx
+│   │   ├── problems
+│   │   │   └── MarkdownView.tsx
+│   │   ├── setup
+│   │   │   └── SetupTokenSection.tsx
+│   │   └── ui
+│   │       └── NavigationProgress.tsx
+│   ├── contexts
+│   │   ├── AuthContext.tsx
+│   │   └── ThemeContext.tsx
+│   └── lib
+│       ├── auth
+│       │   ├── firebase-client.ts
+│       │   ├── recent-accounts.ts
+│       │   ├── session.ts
+│       │   └── types.ts
+│       ├── firebase
+│       │   └── admin.ts
+│       └── judge
+│           ├── admin.ts
+│           ├── crypto.ts
+│           ├── errors.ts
+│           ├── http.ts
+│           ├── repository.ts
+│           ├── service.ts
+│           └── types.ts
 ├── tailwind.config.ts
 ├── tree.sh
 ├── tree.txt
-└── tsconfig.json
+├── tsconfig.json
+└── tsconfig.tsbuildinfo
 
-5 directories, 21 files
+62 directories, 92 files
 
 src/*.ts, *.tsx の統計:
-合計行数: 242
-合計文字数: 9142
-合計ファイルサイズ(bytes): 9442
+合計行数: 6776
+合計文字数: 230158
+合計ファイルサイズ(bytes): 233579
 
 開発環境の容量:
-416M	.
+2.7G	.

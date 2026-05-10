@@ -144,7 +144,7 @@ export default function Home() {
                   01 — CLI を起動
                 </p>
                 <pre className="rounded border border-rp-border bg-rp-900 px-5 py-4 text-[13px] font-mono text-rp-400 overflow-x-auto">
-                  <code>npx @rippro/judge@latest</code>
+                  <code>npm i -g @rippro/judge@latest</code>
                 </pre>
               </div>
               <div>

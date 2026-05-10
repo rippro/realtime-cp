@@ -127,7 +127,7 @@ export function GlobalNav() {
                     href={link.href}
                     className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
                       active
-                        ? "text-rp-100 font-medium"
+                        ? "text-rp-highlight font-medium"
                         : "text-rp-muted hover:text-rp-100"
                     }`}
                   >

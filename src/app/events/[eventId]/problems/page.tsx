@@ -78,8 +78,8 @@ export default async function ProblemsPage({ params }: PageProps) {
               href={`/events/${eventId}/problems/${p.id}`}
               className="flex items-center gap-5 py-5 group hover:bg-rp-800 -mx-4 px-4 transition-colors rounded-lg"
             >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rp-800 border border-rp-border flex items-center justify-center group-hover:border-rp-500 transition-colors">
-                <span className="font-mono text-xs font-bold text-rp-500">{p.id}</span>
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rp-highlight-tint border border-rp-highlight/20 flex items-center justify-center group-hover:bg-rp-highlight group-hover:border-rp-highlight transition-colors">
+                <span className="font-mono text-xs font-bold text-rp-highlight group-hover:text-white transition-colors">{p.id}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">

@@ -100,7 +100,7 @@ export default async function EventHomePage({ params }: PageProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-rp-border border border-rp-border rounded-lg mb-10 overflow-hidden">
         {stats.map((s) => (
           <div key={s.label} className="px-6 py-5 bg-rp-800">
-            <div className="text-3xl font-extrabold tracking-tight text-rp-100 mb-1">
+            <div className="text-3xl font-extrabold tracking-tight text-rp-highlight mb-1">
               {s.value}
               {s.total !== undefined && s.total !== s.value && (
                 <span className="text-base text-rp-muted font-normal"> / {s.total}</span>

@@ -93,13 +93,19 @@ interface User { id: string; createdAt: string }
 interface Event { id: string; isActive: boolean; startsAt: string; endsAt: string; problemCount?: number; teamCount?: number }
 interface Problem { eventId: string; id: string; title: string; isPublished: boolean; creatorUid: string | null }
 
+const stats = [
+  { label: "Events", valueKey: "events", colorClass: "text-rp-highlight" },
+  { label: "Users", valueKey: "users", colorClass: "text-rp-warning" },
+  { label: "Problems", valueKey: "problems", colorClass: "text-rp-success" },
+] as const;
+
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-        active ? "bg-rp-400 text-rp-100" : "text-rp-muted hover:text-rp-100 hover:bg-rp-700"
+        active ? "bg-rp-400 text-white" : "text-rp-muted hover:text-rp-100 hover:bg-rp-700"
       }`}
     >
       {children}
@@ -207,13 +213,11 @@ export default function AdminPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-8">
-            {[
-              { label: "Events", value: events.length, color: "rp-400" },
-              { label: "Users", value: users.length, color: "rp-warning" },
-              { label: "Problems", value: allProblems.length, color: "rp-success" },
-            ].map((s) => (
+            {stats.map((s) => (
               <div key={s.label} className="card-surface p-5">
-                <div className={`font-mono text-3xl font-extrabold text-${s.color}`}>{s.value}</div>
+                <div className={`font-mono text-3xl font-extrabold ${s.colorClass}`}>
+                  {s.valueKey === "events" ? events.length : s.valueKey === "users" ? users.length : allProblems.length}
+                </div>
                 <div className="text-xs text-rp-muted mt-1">{s.label}</div>
               </div>
             ))}

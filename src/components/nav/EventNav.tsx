@@ -32,7 +32,7 @@ export function EventNav({ eventId }: EventNavProps) {
                 href={tab.href(eventId)}
                 className={`relative px-4 py-2.5 text-sm whitespace-nowrap transition-colors border-b-2 ${
                   isActive
-                    ? "text-rp-100 font-medium border-rp-400"
+                    ? "text-rp-highlight font-medium border-rp-highlight"
                     : "text-rp-muted hover:text-rp-300 border-transparent"
                 }`}
               >

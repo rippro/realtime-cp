@@ -65,7 +65,7 @@ export default async function ProblemPage({ params }: PageProps) {
       {/* Problem header */}
       <div className="mb-10 pb-8 border-b border-rp-border">
         <div className="flex items-center gap-3 mb-3">
-          <span className="font-mono text-sm font-bold text-rp-500 bg-rp-800 border border-rp-border px-2.5 py-1 rounded-md">
+          <span className="font-mono text-sm font-bold text-rp-highlight bg-rp-highlight-tint border border-rp-highlight/25 px-2.5 py-1 rounded-md">
             {problem.id}
           </span>
           {!problem.isPublished && (

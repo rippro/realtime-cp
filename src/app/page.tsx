@@ -66,7 +66,7 @@ export default function Home() {
                 },
               ].map((f) => (
                 <div key={f.num} className="px-8 py-10 first:pl-0 last:pr-0">
-                  <p className="text-xs font-mono text-rp-muted mb-4">{f.num}</p>
+                  <p className="text-xs font-mono text-rp-highlight mb-4">{f.num}</p>
                   <h3 className="text-lg font-bold text-rp-100 mb-3">{f.title}</h3>
                   <p className="text-sm text-rp-500 leading-relaxed">{f.desc}</p>
                 </div>

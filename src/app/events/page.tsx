@@ -60,7 +60,7 @@ export default async function EventsPage() {
                   >
                     <div className="flex items-center gap-5">
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        isLive ? "bg-rp-success" : "bg-rp-600"
+                        isLive ? "bg-rp-highlight" : "bg-rp-600"
                       }`} />
                       <div>
                         <h2 className="text-base font-semibold text-rp-100 group-hover:text-rp-400 transition-colors mb-1">

@@ -51,6 +51,8 @@ const config: Config = {
           muted: "#888888",
           accent: "#AA2418",
           "accent-light": "#F5C5C0",
+          highlight: "#3451B2",
+          "highlight-tint": "#EEF1FB",
           success: "#0C6044",
           warning: "#7A4F00",
           border: "#E2E2DE",

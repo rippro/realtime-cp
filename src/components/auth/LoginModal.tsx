@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getClientAuth } from "@/lib/auth/firebase-client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,13 +10,19 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
+type AuthTab = "google" | "solver-login" | "solver-signup";
+type IdStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
 export function LoginModal({ open, onClose }: LoginModalProps) {
   const { refresh } = useAuth();
-  const [tab, setTab] = useState<"google" | "solver">("google");
+  const [tab, setTab] = useState<AuthTab>("google");
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [idStatus, setIdStatus] = useState<IdStatus>("idle");
+  const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,6 +33,36 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  const checkUserId = useCallback((id: string) => {
+    if (checkTimerRef.current) clearTimeout(checkTimerRef.current);
+    if (!id) { setIdStatus("idle"); return; }
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{1,63}$/.test(id)) { setIdStatus("invalid"); return; }
+    setIdStatus("checking");
+    checkTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/register?userId=${encodeURIComponent(id)}`);
+        const d = (await res.json()) as { available: boolean };
+        setIdStatus(d.available ? "available" : "taken");
+      } catch {
+        setIdStatus("idle");
+      }
+    }, 400);
+  }, []);
+
+  function resetForm() {
+    setUserId("");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setIdStatus("idle");
+    if (checkTimerRef.current) clearTimeout(checkTimerRef.current);
+  }
+
+  function switchTab(next: AuthTab) {
+    setTab(next);
+    resetForm();
+  }
 
   async function handleGoogle() {
     setLoading(true);
@@ -55,7 +91,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     }
   }
 
-  async function handleSolver(e: React.FormEvent) {
+  async function handleSolverLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -74,6 +110,34 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
       onClose();
     } catch {
       setError("ログインに失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSolverSignup(e: React.FormEvent) {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("パスワードが一致しません");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, password }),
+      });
+      if (!res.ok) {
+        const d = (await res.json()) as { error?: string };
+        setError(d.error ?? "登録失敗");
+        return;
+      }
+      await refresh();
+      onClose();
+    } catch {
+      setError("登録に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -99,13 +163,16 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
           </svg>
         </button>
 
-        <h2 className="text-xl font-bold tracking-tight text-rp-100 mb-1">ログイン</h2>
+        <h2 className="text-xl font-bold tracking-tight text-rp-100 mb-1">
+          {tab === "solver-signup" ? "新規登録" : "ログイン"}
+        </h2>
         <p className="text-sm text-rp-muted mb-7">RipPro Judge にアクセス</p>
 
-        <div className="flex mb-6 rounded-lg overflow-hidden border border-rp-border">
+        {/* Top tabs: Creator/Admin vs Solver */}
+        <div className="flex mb-4 rounded-lg overflow-hidden border border-rp-border">
           <button
             type="button"
-            onClick={() => setTab("google")}
+            onClick={() => switchTab("google")}
             className={`flex-1 py-2 text-sm font-medium transition-colors ${
               tab === "google"
                 ? "bg-rp-400 text-white"
@@ -116,9 +183,9 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
           </button>
           <button
             type="button"
-            onClick={() => setTab("solver")}
+            onClick={() => switchTab("solver-login")}
             className={`flex-1 py-2 text-sm font-medium transition-colors ${
-              tab === "solver"
+              tab !== "google"
                 ? "bg-rp-400 text-white"
                 : "bg-rp-800 text-rp-muted hover:text-rp-100"
             }`}
@@ -147,47 +214,117 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
             {error && <p className="text-sm text-rp-accent text-center mt-2">{error}</p>}
           </div>
         ) : (
-          <form onSubmit={handleSolver} className="space-y-4">
-            <div>
-              <label className="block text-xs text-rp-muted mb-1.5" htmlFor="userId">
-                ユーザーID
-              </label>
-              <input
-                id="userId"
-                type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="input-field"
-                placeholder="alice"
-                autoComplete="username"
-              />
+          <>
+            {/* Login / Signup sub-tabs */}
+            <div className="flex mb-5 gap-4 border-b border-rp-border">
+              <button
+                type="button"
+                onClick={() => switchTab("solver-login")}
+                className={`pb-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  tab === "solver-login"
+                    ? "border-rp-400 text-rp-100"
+                    : "border-transparent text-rp-muted hover:text-rp-100"
+                }`}
+              >
+                ログイン
+              </button>
+              <button
+                type="button"
+                onClick={() => switchTab("solver-signup")}
+                className={`pb-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  tab === "solver-signup"
+                    ? "border-rp-400 text-rp-100"
+                    : "border-transparent text-rp-muted hover:text-rp-100"
+                }`}
+              >
+                新規登録
+              </button>
             </div>
-            <div>
-              <label className="block text-xs text-rp-muted mb-1.5" htmlFor="password">
-                パスワード
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
-            <p className="text-xs text-rp-muted">
-              パスワードを忘れた場合は管理者に連絡してください。
-            </p>
-            {error && <p className="text-sm text-rp-accent">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full mt-2"
-            >
-              {loading ? "ログイン中..." : "ログイン"}
-            </button>
-          </form>
+
+            <form onSubmit={tab === "solver-login" ? handleSolverLogin : handleSolverSignup} className="space-y-4">
+              <div>
+                <label className="block text-xs text-rp-muted mb-1.5" htmlFor="userId">
+                  ユーザーID
+                </label>
+                <div className="relative">
+                  <input
+                    id="userId"
+                    type="text"
+                    value={userId}
+                    onChange={(e) => {
+                      setUserId(e.target.value);
+                      if (tab === "solver-signup") checkUserId(e.target.value);
+                    }}
+                    className="input-field w-full pr-8"
+                    placeholder="alice"
+                    autoComplete="username"
+                  />
+                  {tab === "solver-signup" && idStatus !== "idle" && (
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm">
+                      {idStatus === "checking" && <span className="text-rp-muted animate-pulse">…</span>}
+                      {idStatus === "available" && <span className="text-rp-success">✓</span>}
+                      {idStatus === "taken" && <span className="text-rp-accent">✗</span>}
+                      {idStatus === "invalid" && <span className="text-rp-accent">✗</span>}
+                    </span>
+                  )}
+                </div>
+                {tab === "solver-signup" && idStatus === "taken" && (
+                  <p className="text-xs text-rp-accent mt-1">そのIDは既に使われています</p>
+                )}
+                {tab === "solver-signup" && idStatus === "invalid" && (
+                  <p className="text-xs text-rp-accent mt-1">英数字・_・-、2文字以上</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs text-rp-muted mb-1.5" htmlFor="password">
+                  パスワード
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field"
+                  placeholder="••••••••"
+                  autoComplete={tab === "solver-login" ? "current-password" : "new-password"}
+                />
+              </div>
+              {tab === "solver-signup" && (
+                <div>
+                  <label className="block text-xs text-rp-muted mb-1.5" htmlFor="confirmPassword">
+                    パスワード（確認）
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-field"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <p className="text-xs text-rp-muted mt-2">
+                    パスワードは3文字以上
+                  </p>
+                </div>
+              )}
+              {tab === "solver-login" && (
+                <p className="text-xs text-rp-muted">
+                  パスワードを忘れた場合は管理者に連絡してください。
+                </p>
+              )}
+              {error && <p className="text-sm text-rp-accent">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full mt-2"
+              >
+                {loading
+                  ? tab === "solver-signup" ? "登録中..." : "ログイン中..."
+                  : tab === "solver-signup" ? "登録"  : "ログイン"}
+              </button>
+            </form>
+          </>
         )}
       </div>
     </div>

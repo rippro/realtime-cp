@@ -6,7 +6,7 @@ export function sha256Hex(value: string): string {
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("base64url");
-  const parameters = { n: 16384, r: 8, p: 1, keyLength: 64 };
+  const parameters = { n: 4096, r: 8, p: 1, keyLength: 64 };
   const key = (await scryptAsync(password, salt, parameters.keyLength, {
     N: parameters.n,
     r: parameters.r,

@@ -87,6 +87,67 @@ function EventForm({ onCreated }: { onCreated: (e: Event) => void }) {
   );
 }
 
+function UserForm({ onCreated }: { onCreated: (u: User) => void }) {
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(ev: React.FormEvent) {
+    ev.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      const r = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, password }),
+      });
+      const data = (await r.json()) as User & { error?: string };
+      if (!r.ok) { setError(data.error ?? "作成失敗"); return; }
+      onCreated(data);
+      setUserId(""); setPassword("");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="card-surface p-5 space-y-4">
+      <h3 className="font-display text-sm font-semibold text-rp-100">新規ユーザー作成</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-rp-muted mb-1">User ID</label>
+          <input
+            required
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="e.g. alice"
+            className="input-field w-full text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-rp-muted mb-1">パスワード</label>
+          <input
+            required
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="8文字以上"
+            className="input-field w-full text-sm"
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {error && <p className="text-xs text-rp-accent">{error}</p>}
+        <button type="submit" disabled={saving} className="ml-auto btn-primary py-1.5 px-4 text-sm disabled:opacity-50">
+          {saving ? "作成中..." : "作成"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 type AdminTab = "events" | "users" | "problems";
 
 interface User { id: string; createdAt: string }
@@ -291,8 +352,8 @@ export default function AdminPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-lg font-bold text-rp-100">Users ({users.length})</h2>
-                <p className="text-xs text-rp-muted">新規作成は Admin API (POST /admin/users) で</p>
               </div>
+              <UserForm onCreated={(u) => setUsers((us) => [u, ...us])} />
               {users.map((u) => (
                 <div key={u.id} className="card-surface flex items-center gap-4 px-5 py-4">
                   <div className="flex-shrink-0 h-9 w-9 rounded-full bg-rp-700 flex items-center justify-center">

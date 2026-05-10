@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
-// 環境変数から本番ビルドモードかどうかを判断
 const isProductionBuild = process.env.BUILD_MODE === 'production';
+const isStaticExport = process.env.NEXT_STATIC_EXPORT === 'true';
 
 let basePathEnv = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Normalize: ensure basePathEnv (if present) starts with a leading '/'
@@ -27,20 +27,26 @@ const nextConfig = {
   // 共通設定を適用
   ...commonConfig,
 
-  // 本番ビルドモード時のみ静的エクスポートを有効化
-  output: isProductionBuild ? 'export' : undefined,
-  trailingSlash: isProductionBuild,
+  // Judge API routes require a server runtime. Static export is opt-in only.
+  output: isStaticExport ? 'export' : undefined,
+  trailingSlash: isStaticExport,
   // 静的エクスポート時のみ必要な設定
   images: {
     unoptimized: true,
   },
   typescript: {
-    ignoreBuildErrors: isProductionBuild,
+    ignoreBuildErrors: false,
   },
   basePath: configuredBasePath,
   assetPrefix: configuredBasePath,
+  turbopack: {
+    root: __dirname,
+  },
 };
 
-console.log(`Building in ${isProductionBuild ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+console.log(
+  `Building in ${isProductionBuild ? 'PRODUCTION' : 'DEVELOPMENT'} mode` +
+    `${isStaticExport ? ' with static export' : ''}`,
+);
 
 module.exports = nextConfig;

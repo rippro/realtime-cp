@@ -1,5 +1,4 @@
 import { getAuth } from "firebase-admin/auth";
-import { getApps } from "firebase-admin/app";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createSessionCookie, sessionCookieOptions } from "@/lib/auth/session";
@@ -9,12 +8,6 @@ import type { GoogleSession } from "@/lib/auth/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getAdminAuth() {
-  const app = getApps()[0];
-  if (!app) throw new Error("Firebase Admin not initialized");
-  return getAuth(app);
-}
-
 export async function POST(request: Request) {
   try {
     const { idToken } = (await request.json()) as { idToken: string };
@@ -22,13 +15,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "idToken required" }, { status: 400 });
     }
 
-    // Initialize admin if needed
-    const db = getAdminFirestore();
-    void db;
+    // Ensure Firebase Admin is initialized before calling getAuth()
+    getAdminFirestore();
 
-    const decoded = await getAdminAuth().verifyIdToken(idToken);
+    let decoded: Awaited<ReturnType<ReturnType<typeof getAuth>["verifyIdToken"]>>;
+    try {
+      decoded = await getAuth().verifyIdToken(idToken);
+    } catch (verifyErr) {
+      console.error("verifyIdToken failed:", verifyErr);
+      return NextResponse.json({ error: "Invalid ID token" }, { status: 401 });
+    }
+
     const email = decoded.email ?? "";
-    const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+    const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
     const role: "admin" | "creator" = adminEmails.includes(email) ? "admin" : "creator";
 
     const session: GoogleSession = {
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ role, email, name: session.name });
   } catch (err) {
-    console.error("session error:", err);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("session route error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

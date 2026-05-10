@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { getSessionDisplayName } from "@/lib/auth/types";
@@ -17,11 +16,6 @@ function AccountMenu({ onLogout }: { onLogout: () => void }) {
   const { session } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open || !menuRef.current) return;
-    gsap.fromTo(menuRef.current, { opacity: 0, y: -6, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.18, ease: "power2.out" });
-  }, [open]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -40,14 +34,14 @@ function AccountMenu({ onLogout }: { onLogout: () => void }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-rp-400/20 border border-rp-400/40 text-xs font-mono font-semibold text-rp-300 hover:bg-rp-400/30 transition-all"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-rp-400/20 border border-rp-400/40 text-xs font-mono font-semibold text-rp-300 hover:bg-rp-400/30 transition-colors"
       >
         {initials}
       </button>
       {open && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-rp-border bg-rp-800 shadow-2xl overflow-hidden z-[100]"
+          className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-rp-border bg-rp-800 shadow-2xl overflow-hidden z-[100] animate-scale-in"
         >
           {session && (
             <div className="px-4 py-3 border-b border-rp-border">
@@ -97,23 +91,6 @@ export function GlobalNav() {
   const { session, loading, logout } = useAuth();
   const pathname = usePathname();
   const [loginOpen, setLoginOpen] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!navRef.current || !linksRef.current) return;
-    const links = linksRef.current.children;
-    gsap.fromTo(
-      navRef.current,
-      { y: -56, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" },
-    );
-    gsap.fromTo(
-      links,
-      { opacity: 0, y: -8 },
-      { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power2.out", delay: 0.2 },
-    );
-  }, []);
 
   const extraLinks = [];
   if (session?.role === "creator" || session?.role === "admin") {
@@ -127,10 +104,10 @@ export function GlobalNav() {
 
   return (
     <>
-      <nav ref={navRef} className="nav-glass fixed top-0 left-0 right-0 z-50 h-14">
+      <nav className="nav-glass fixed top-0 left-0 right-0 z-50 h-14">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/" className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-md bg-rp-400 flex items-center justify-center">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M2 7l3.5 3.5L12 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -141,7 +118,7 @@ export function GlobalNav() {
               </span>
             </Link>
 
-            <div ref={linksRef} className="flex items-center gap-1">
+            <div className="flex items-center gap-1">
               {allLinks.map((link) => {
                 const active = link.href === "/"
                   ? pathname === "/"
@@ -150,7 +127,7 @@ export function GlobalNav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                       active
                         ? "bg-rp-400/20 text-rp-300"
                         : "text-rp-muted hover:text-rp-100 hover:bg-rp-700"

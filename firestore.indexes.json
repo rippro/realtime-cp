@@ -1,13 +1,20 @@
 {
   "indexes": [
     {
-      "collectionGroup": "testcases",
+      "collectionGroup": "problems",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "eventId", "order": "ASCENDING" },
-        { "fieldPath": "problemId", "order": "ASCENDING" },
-        { "fieldPath": "version", "order": "ASCENDING" },
-        { "fieldPath": "orderIndex", "order": "ASCENDING" }
+        { "fieldPath": "id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "problems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "eventId", "order": "ASCENDING" },
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "id", "order": "ASCENDING" }
       ]
     }
   ],

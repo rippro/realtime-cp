@@ -1,22 +1,22 @@
+import type { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
-import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getSession } from "@/lib/auth/session";
-import { Timestamp } from "firebase-admin/firestore";
+import { getAdminFirestore } from "@/lib/firebase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const db = getAdminFirestore();
-  let query = db.collection("submissions").where("eventId", "==", eventId).orderBy("createdAt", "desc");
+  let query = db
+    .collection("submissions")
+    .where("eventId", "==", eventId)
+    .orderBy("createdAt", "desc");
 
   if (session.role === "solver") {
     query = query.where("userId", "==", session.userId) as typeof query;

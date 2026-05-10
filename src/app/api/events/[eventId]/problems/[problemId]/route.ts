@@ -28,7 +28,8 @@ export async function GET(
   if (!d.isPublished && (!session || session.role === "solver")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  let testcasesQuery = db.collection("testcases")
+  let testcasesQuery = db
+    .collection("testcases")
     .where("eventId", "==", eventId)
     .where("problemId", "==", problemId);
   if (!session || session.role === "solver") {
@@ -97,7 +98,8 @@ export async function PATCH(
   const batch = db.batch();
   batch.update(ref, updates);
   if (body.testcases !== undefined) {
-    const existingTestcases = await db.collection("testcases")
+    const existingTestcases = await db
+      .collection("testcases")
       .where("eventId", "==", eventId)
       .where("problemId", "==", problemId)
       .get();
@@ -107,10 +109,10 @@ export async function PATCH(
     for (const testcase of readTestcases(body.testcases)) {
       const testcaseId = newId();
       batch.create(db.collection("testcases").doc(testcaseId), {
-      id: testcaseId,
-      eventId,
-      problemId,
-      type: testcase.type,
+        id: testcaseId,
+        eventId,
+        problemId,
+        type: testcase.type,
         input: testcase.input,
         expectedOutput: testcase.expectedOutput,
         showOnFailure: testcase.type === "sample",

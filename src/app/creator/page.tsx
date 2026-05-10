@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { GlobalNav } from "@/components/nav/GlobalNav";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { GlobalNav } from "@/components/nav/GlobalNav";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Problem {
   eventId: string;
@@ -21,6 +21,7 @@ interface Problem {
 
 interface Testcase {
   id?: string;
+  clientId: string;
   type: "sample" | "hidden";
   input: string;
   expectedOutput: string;
@@ -30,6 +31,10 @@ interface Testcase {
 interface Event {
   id: string;
   isActive: boolean;
+}
+
+function makeClientId() {
+  return crypto.randomUUID();
 }
 
 function ProblemForm({
@@ -52,8 +57,11 @@ function ProblemForm({
   });
   const [testcases, setTestcases] = useState<Testcase[]>(
     initial?.testcases?.length
-      ? initial.testcases
-      : [{ type: "sample", input: "", expectedOutput: "" }],
+      ? initial.testcases.map((testcase) => ({
+          ...testcase,
+          clientId: testcase.id ?? makeClientId(),
+        }))
+      : [{ clientId: makeClientId(), type: "sample", input: "", expectedOutput: "" }],
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -91,13 +99,16 @@ function ProblemForm({
   }
 
   function updateTestcase(index: number, updates: Partial<Testcase>) {
-    setTestcases((cases) => cases.map((testcase, i) => (
-      i === index ? { ...testcase, ...updates } : testcase
-    )));
+    setTestcases((cases) =>
+      cases.map((testcase, i) => (i === index ? { ...testcase, ...updates } : testcase)),
+    );
   }
 
   function addTestcase(type: "sample" | "hidden") {
-    setTestcases((cases) => [...cases, { type, input: "", expectedOutput: "" }]);
+    setTestcases((cases) => [
+      ...cases,
+      { clientId: makeClientId(), type, input: "", expectedOutput: "" },
+    ]);
   }
 
   function removeTestcase(index: number) {
@@ -107,47 +118,115 @@ function ProblemForm({
   return (
     <form onSubmit={submit} className="space-y-4">
       <div>
-        <label className="block text-xs text-rp-muted mb-1.5">タイトル</label>
-        <input className="input-field" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="A + B 問題" required />
+        <label htmlFor="problem-title" className="block text-xs text-rp-muted mb-1.5">
+          タイトル
+        </label>
+        <input
+          id="problem-title"
+          className="input-field"
+          value={form.title}
+          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+          placeholder="A + B 問題"
+          required
+        />
       </div>
       <div>
-        <label className="block text-xs text-rp-muted mb-1.5">問題文 Markdown</label>
-        <textarea className="input-field min-h-[220px] resize-y font-mono" value={form.statement} onChange={(e) => setForm((f) => ({ ...f, statement: e.target.value }))} placeholder={"# 問題文\n\n$1 \\le N \\le 10^5$"} required />
+        <label htmlFor="problem-statement" className="block text-xs text-rp-muted mb-1.5">
+          問題文 Markdown
+        </label>
+        <textarea
+          id="problem-statement"
+          className="input-field min-h-[220px] resize-y font-mono"
+          value={form.statement}
+          onChange={(e) => setForm((f) => ({ ...f, statement: e.target.value }))}
+          placeholder={"# 問題文\n\n$1 \\le N \\le 10^5$"}
+          required
+        />
       </div>
       <div>
-        <label className="block text-xs text-rp-muted mb-1.5">模範解答コード</label>
-        <textarea className="input-field min-h-[180px] resize-y font-mono" value={form.solutionCode} onChange={(e) => setForm((f) => ({ ...f, solutionCode: e.target.value }))} placeholder={"#include <bits/stdc++.h>\nusing namespace std;\nint main() {\n  return 0;\n}"} />
+        <label htmlFor="solution-code" className="block text-xs text-rp-muted mb-1.5">
+          模範解答コード
+        </label>
+        <textarea
+          id="solution-code"
+          className="input-field min-h-[180px] resize-y font-mono"
+          value={form.solutionCode}
+          onChange={(e) => setForm((f) => ({ ...f, solutionCode: e.target.value }))}
+          placeholder={
+            "#include <bits/stdc++.h>\nusing namespace std;\nint main() {\n  return 0;\n}"
+          }
+        />
       </div>
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <label className="block text-xs text-rp-muted">テストケース</label>
+          <p className="block text-xs text-rp-muted">テストケース</p>
           <div className="flex gap-2">
-            <button type="button" onClick={() => addTestcase("sample")} className="btn-ghost py-1.5 px-3 text-xs">サンプル追加</button>
-            <button type="button" onClick={() => addTestcase("hidden")} className="btn-ghost py-1.5 px-3 text-xs">隠し追加</button>
+            <button
+              type="button"
+              onClick={() => addTestcase("sample")}
+              className="btn-ghost py-1.5 px-3 text-xs"
+            >
+              サンプル追加
+            </button>
+            <button
+              type="button"
+              onClick={() => addTestcase("hidden")}
+              className="btn-ghost py-1.5 px-3 text-xs"
+            >
+              隠し追加
+            </button>
           </div>
         </div>
         <div className="space-y-4">
           {testcases.map((testcase, index) => (
-            <div key={`${testcase.id ?? "new"}-${index}`} className="rounded-lg border border-rp-border bg-rp-800 p-4">
+            <div
+              key={testcase.clientId}
+              className="rounded-lg border border-rp-border bg-rp-800 p-4"
+            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <select
                   value={testcase.type}
-                  onChange={(e) => updateTestcase(index, { type: e.target.value === "hidden" ? "hidden" : "sample" })}
+                  onChange={(e) =>
+                    updateTestcase(index, {
+                      type: e.target.value === "hidden" ? "hidden" : "sample",
+                    })
+                  }
                   className="input-field w-36 bg-rp-900"
                 >
                   <option value="sample">sample</option>
                   <option value="hidden">hidden</option>
                 </select>
-                <button type="button" onClick={() => removeTestcase(index)} className="btn-ghost py-1.5 px-3 text-xs" disabled={testcases.length === 1}>削除</button>
+                <button
+                  type="button"
+                  onClick={() => removeTestcase(index)}
+                  className="btn-ghost py-1.5 px-3 text-xs"
+                  disabled={testcases.length === 1}
+                >
+                  削除
+                </button>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-rp-muted">Input</label>
-                  <textarea className="input-field min-h-[120px] resize-y font-mono" value={testcase.input} onChange={(e) => updateTestcase(index, { input: e.target.value })} />
+                  <p className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-rp-muted">
+                    Input
+                  </p>
+                  <textarea
+                    aria-label={`Testcase ${index + 1} input`}
+                    className="input-field min-h-[120px] resize-y font-mono"
+                    value={testcase.input}
+                    onChange={(e) => updateTestcase(index, { input: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-rp-muted">Expected Output</label>
-                  <textarea className="input-field min-h-[120px] resize-y font-mono" value={testcase.expectedOutput} onChange={(e) => updateTestcase(index, { expectedOutput: e.target.value })} />
+                  <p className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-rp-muted">
+                    Expected Output
+                  </p>
+                  <textarea
+                    aria-label={`Testcase ${index + 1} expected output`}
+                    className="input-field min-h-[120px] resize-y font-mono"
+                    value={testcase.expectedOutput}
+                    onChange={(e) => updateTestcase(index, { expectedOutput: e.target.value })}
+                  />
                 </div>
               </div>
             </div>
@@ -156,18 +235,39 @@ function ProblemForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-xs text-rp-muted mb-1.5">制限時間 (ms)</label>
-          <input type="number" className="input-field" value={form.timeLimitMs} onChange={(e) => setForm((f) => ({ ...f, timeLimitMs: Number(e.target.value) }))} min={100} />
+          <label htmlFor="time-limit-ms" className="block text-xs text-rp-muted mb-1.5">
+            制限時間 (ms)
+          </label>
+          <input
+            id="time-limit-ms"
+            type="number"
+            className="input-field"
+            value={form.timeLimitMs}
+            onChange={(e) => setForm((f) => ({ ...f, timeLimitMs: Number(e.target.value) }))}
+            min={100}
+          />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <input type="checkbox" id="isPublished" checked={form.isPublished} onChange={(e) => setForm((f) => ({ ...f, isPublished: e.target.checked }))} className="accent-rp-400" />
-        <label htmlFor="isPublished" className="text-sm text-rp-100">公開する</label>
+        <input
+          type="checkbox"
+          id="isPublished"
+          checked={form.isPublished}
+          onChange={(e) => setForm((f) => ({ ...f, isPublished: e.target.checked }))}
+          className="accent-rp-400"
+        />
+        <label htmlFor="isPublished" className="text-sm text-rp-100">
+          公開する
+        </label>
       </div>
       {error && <p className="text-sm text-rp-accent">{error}</p>}
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={saving} className="btn-primary">{saving ? "保存中..." : "保存"}</button>
-        <button type="button" onClick={onCancel} className="btn-ghost">キャンセル</button>
+        <button type="submit" disabled={saving} className="btn-primary">
+          {saving ? "保存中..." : "保存"}
+        </button>
+        <button type="button" onClick={onCancel} className="btn-ghost">
+          キャンセル
+        </button>
       </div>
     </form>
   );
@@ -184,8 +284,14 @@ export default function CreatorPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !session) { router.push("/login"); return; }
-    if (!loading && session?.role !== "admin" && session?.role !== "creator") { router.push("/"); return; }
+    if (!loading && !session) {
+      router.push("/login");
+      return;
+    }
+    if (!loading && session?.role !== "admin" && session?.role !== "creator") {
+      router.push("/");
+      return;
+    }
   }, [session, loading, router]);
 
   useEffect(() => {
@@ -220,9 +326,10 @@ export default function CreatorPage() {
     setShowForm(false);
   }
 
-  const myProblems = session?.role === "admin"
-    ? problems
-    : problems.filter((p) => p.creatorUid === (session as { uid: string } | undefined)?.uid);
+  const myProblems =
+    session?.role === "admin"
+      ? problems
+      : problems.filter((p) => p.creatorUid === (session as { uid: string } | undefined)?.uid);
 
   if (loading) return null;
 
@@ -238,14 +345,19 @@ export default function CreatorPage() {
 
           {/* Event selector */}
           <div className="mb-6 flex items-center gap-4">
-            <label className="text-sm text-rp-muted">イベント:</label>
+            <label htmlFor="event-selector" className="text-sm text-rp-muted">
+              イベント:
+            </label>
             <select
+              id="event-selector"
               value={selectedEvent}
               onChange={(e) => setSelectedEvent(e.target.value)}
               className="input-field w-auto max-w-xs"
             >
               {events.map((e) => (
-                <option key={e.id} value={e.id}>{e.id}</option>
+                <option key={e.id} value={e.id}>
+                  {e.id}
+                </option>
               ))}
             </select>
           </div>
@@ -271,7 +383,9 @@ export default function CreatorPage() {
 
           {editProblem && (
             <div className="card-surface p-6 mb-6">
-              <h2 className="font-display text-lg font-bold text-rp-100 mb-4">問題を編集: {editProblem.id}</h2>
+              <h2 className="font-display text-lg font-bold text-rp-100 mb-4">
+                問題を編集: {editProblem.id}
+              </h2>
               <ProblemForm
                 key={editProblem.id}
                 eventId={selectedEvent}
@@ -315,12 +429,18 @@ export default function CreatorPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-sm font-semibold text-rp-100 truncate">{p.title}</span>
+                      <span className="font-display text-sm font-semibold text-rp-100 truncate">
+                        {p.title}
+                      </span>
                       {!p.isPublished && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-rp-muted/30 text-rp-muted">DRAFT</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-rp-muted/30 text-rp-muted">
+                          DRAFT
+                        </span>
                       )}
                       {p.isPublished && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-active">LIVE</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded badge-active">
+                          LIVE
+                        </span>
                       )}
                     </div>
                     <p className="font-mono text-xs text-rp-muted mt-0.5">

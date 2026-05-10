@@ -1,8 +1,8 @@
+import type { Timestamp } from "firebase-admin/firestore";
 import { notFound } from "next/navigation";
-import { getAdminFirestore } from "@/lib/firebase/admin";
-import { getSession } from "@/lib/auth/session";
-import { Timestamp } from "firebase-admin/firestore";
 import { MarkdownView } from "@/components/problems/MarkdownView";
+import { getSession } from "@/lib/auth/session";
+import { getAdminFirestore } from "@/lib/firebase/admin";
 
 interface PageProps {
   params: Promise<{ eventId: string; problemId: string }>;
@@ -14,7 +14,8 @@ async function getProblemWithTestcases(eventId: string, problemId: string, showA
     const docId = `${eventId}_${problemId}`;
     const [problemSnap, testcasesSnap] = await Promise.all([
       db.collection("problems").doc(docId).get(),
-      db.collection("testcases")
+      db
+        .collection("testcases")
         .where("eventId", "==", eventId)
         .where("problemId", "==", problemId)
         .where("type", "==", "sample")
@@ -23,7 +24,8 @@ async function getProblemWithTestcases(eventId: string, problemId: string, showA
     ]);
 
     if (!problemSnap.exists) return null;
-    const d = problemSnap.data()!;
+    const d = problemSnap.data();
+    if (!d) return null;
     if (!d.isPublished && !showAll) return null;
 
     return {
@@ -57,7 +59,6 @@ export default async function ProblemPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-
       {/* Problem header */}
       <div className="mb-10 pb-8 border-b border-rp-border">
         <div className="flex items-center gap-3 mb-3">
@@ -72,7 +73,9 @@ export default async function ProblemPage({ params }: PageProps) {
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-rp-100 mb-4">{problem.title}</h1>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-rp-muted">
-          <span>制限時間: <span className="text-rp-300 font-mono">{problem.timeLimitMs}ms</span></span>
+          <span>
+            制限時間: <span className="text-rp-300 font-mono">{problem.timeLimitMs}ms</span>
+          </span>
         </div>
       </div>
 
@@ -84,19 +87,29 @@ export default async function ProblemPage({ params }: PageProps) {
         {/* サンプル */}
         {problem.samples.length > 0 && (
           <section className="border-t border-rp-border pt-6">
-            <h2 className="text-xs font-medium tracking-widest text-rp-muted uppercase mb-6">サンプル</h2>
+            <h2 className="text-xs font-medium tracking-widest text-rp-muted uppercase mb-6">
+              サンプル
+            </h2>
             <div className="space-y-6">
               {problem.samples.map((s, i) => (
                 <div key={s.id}>
                   <p className="text-xs font-mono text-rp-muted mb-3">Sample {i + 1}</p>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
-                      <p className="text-[10px] font-medium tracking-widest text-rp-muted uppercase mb-2">Input</p>
-                      <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-xs font-mono text-rp-300 whitespace-pre-wrap min-h-[60px]">{s.input}</pre>
+                      <p className="text-[10px] font-medium tracking-widest text-rp-muted uppercase mb-2">
+                        Input
+                      </p>
+                      <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-xs font-mono text-rp-300 whitespace-pre-wrap min-h-[60px]">
+                        {s.input}
+                      </pre>
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium tracking-widest text-rp-muted uppercase mb-2">Output</p>
-                      <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-xs font-mono text-rp-success whitespace-pre-wrap min-h-[60px]">{s.expectedOutput}</pre>
+                      <p className="text-[10px] font-medium tracking-widest text-rp-muted uppercase mb-2">
+                        Output
+                      </p>
+                      <pre className="rounded-lg bg-rp-800 border border-rp-border p-4 text-xs font-mono text-rp-success whitespace-pre-wrap min-h-[60px]">
+                        {s.expectedOutput}
+                      </pre>
                     </div>
                   </div>
                 </div>

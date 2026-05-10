@@ -7,22 +7,22 @@
 @layer base {
   :root {
     /* RipPro — Light Professional */
-    --rp-900: #FFFFFF;
-    --rp-800: #F6F6F4;
-    --rp-700: #EDEDEB;
-    --rp-600: #E2E2DE;
-    --rp-500: #5A5A58;
-    --rp-400: #0F2B2B;
-    --rp-300: #3A3A3A;
-    --rp-100: #0A0A0A;
+    --rp-900: #ffffff;
+    --rp-800: #f6f6f4;
+    --rp-700: #ededeb;
+    --rp-600: #e2e2de;
+    --rp-500: #5a5a58;
+    --rp-400: #0f2b2b;
+    --rp-300: #3a3a3a;
+    --rp-100: #0a0a0a;
     --rp-muted: #888888;
-    --rp-accent: #AA2418;
-    --rp-accent-light: #F5C5C0;
-    --rp-highlight: #3451B2;
-    --rp-highlight-tint: #EEF1FB;
-    --rp-success: #0C6044;
-    --rp-warning: #7A4F00;
-    --rp-border: #E2E2DE;
+    --rp-accent: #aa2418;
+    --rp-accent-light: #f5c5c0;
+    --rp-highlight: #3451b2;
+    --rp-highlight-tint: #eef1fb;
+    --rp-success: #0c6044;
+    --rp-warning: #7a4f00;
+    --rp-border: #e2e2de;
 
     --background: 0 0% 100%;
     --foreground: 0 0% 4%;
@@ -61,18 +61,27 @@
     background-color: var(--rp-900);
     color: var(--rp-100);
     font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
 
-  code, pre, .font-mono {
+  code,
+  pre,
+  .font-mono {
     font-family: "JetBrains Mono", monospace;
   }
 
@@ -81,10 +90,20 @@
     text-decoration: none;
   }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--rp-600); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--rp-500); }
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rp-600);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--rp-500);
+  }
 }
 
 @layer components {
@@ -108,7 +127,7 @@
   }
 
   .badge-active {
-    background: #EBF5F0;
+    background: #ebf5f0;
     color: var(--rp-success);
     border: 1px solid rgba(12, 96, 68, 0.22);
   }
@@ -121,19 +140,21 @@
 
   .btn-primary {
     background: var(--rp-400);
-    color: #FFFFFF;
+    color: #ffffff;
     border-radius: 6px;
     padding: 10px 22px;
     font-family: "Inter", sans-serif;
     font-weight: 500;
     font-size: 14px;
-    transition: background 0.15s, transform 0.12s;
+    transition:
+      background 0.15s,
+      transform 0.12s;
     border: none;
     cursor: pointer;
     display: inline-block;
   }
   .btn-primary:hover {
-    background: #1D4040;
+    background: #1d4040;
     transform: translateY(-1px);
   }
   .btn-primary:active {
@@ -187,7 +208,9 @@
     outline: none;
     width: 100%;
   }
-  .input-field::placeholder { color: var(--rp-muted); }
+  .input-field::placeholder {
+    color: var(--rp-muted);
+  }
   .input-field:focus {
     border-color: var(--rp-400);
     box-shadow: 0 0 0 3px rgba(15, 43, 43, 0.08);
@@ -217,9 +240,15 @@
     line-height: 1.35;
     margin-top: 1.6rem;
   }
-  .markdown-body h2 { font-size: 1.2rem; }
-  .markdown-body h3 { font-size: 1.05rem; }
-  .markdown-body h4 { font-size: 0.95rem; }
+  .markdown-body h2 {
+    font-size: 1.2rem;
+  }
+  .markdown-body h3 {
+    font-size: 1.05rem;
+  }
+  .markdown-body h4 {
+    font-size: 0.95rem;
+  }
   .markdown-body ul {
     list-style: disc;
     padding-left: 1.4rem;

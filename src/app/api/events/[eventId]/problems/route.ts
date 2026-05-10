@@ -1,16 +1,13 @@
-import { NextResponse } from "next/server";
-import { getAdminFirestore } from "@/lib/firebase/admin";
-import { getSession } from "@/lib/auth/session";
 import { Timestamp } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/session";
+import { getAdminFirestore } from "@/lib/firebase/admin";
 import { generateProblemId, newId } from "@/lib/judge/crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
   const session = await getSession();
@@ -42,10 +39,7 @@ export async function GET(
   return NextResponse.json({ problems });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
   const session = await getSession();
@@ -57,7 +51,9 @@ export async function POST(
   const now = new Date();
   const db = getAdminFirestore();
 
-  const requestedId = String(body.id ?? "").trim().toUpperCase();
+  const requestedId = String(body.id ?? "")
+    .trim()
+    .toUpperCase();
   let problemId = requestedId || generateProblemId();
   if (!/^[23456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/.test(problemId)) {
     return NextResponse.json({ error: "id must be 4 unambiguous characters" }, { status: 400 });
@@ -83,7 +79,8 @@ export async function POST(
     timeLimitMs: Number(body.timeLimitMs ?? 2000),
     compareMode: "trimmed-exact",
     isPublished: Boolean(body.isPublished ?? false),
-    creatorUid: session.role === "creator" ? session.uid : (session.role === "admin" ? session.uid : null),
+    creatorUid:
+      session.role === "creator" ? session.uid : session.role === "admin" ? session.uid : null,
     createdAt: Timestamp.fromDate(now),
     updatedAt: Timestamp.fromDate(now),
   };

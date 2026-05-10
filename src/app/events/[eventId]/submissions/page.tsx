@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Submission {
   id: string;
@@ -55,7 +55,10 @@ export default function SubmissionsPage() {
             <thead>
               <tr className="border-b border-rp-border">
                 {["#", "User", "Problem", "Time", "Submitted"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-mono text-rp-muted font-medium">
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-xs font-mono text-rp-muted font-medium"
+                  >
                     {h}
                   </th>
                 ))}
@@ -69,7 +72,12 @@ export default function SubmissionsPage() {
                   <td className="px-4 py-3 font-mono text-xs text-rp-300">{s.problemId}</td>
                   <td className="px-4 py-3 font-mono text-xs text-rp-muted">{s.maxTimeMs}ms</td>
                   <td className="px-4 py-3 font-mono text-xs text-rp-muted">
-                    {new Date(s.createdAt).toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(s.createdAt).toLocaleString("ja-JP", {
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </td>
                 </tr>
               ))}

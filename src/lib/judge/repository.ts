@@ -103,10 +103,9 @@ export class FirestoreJudgeRepository implements JudgeRepository {
       .collection("testcases")
       .where("eventId", "==", eventId)
       .where("problemId", "==", problemId)
-      .orderBy("orderIndex", "asc")
       .get();
 
-    return snapshot.docs.map(toTestcase);
+    return snapshot.docs.map(toTestcase).sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
   async createAcceptedSubmission(input: {

@@ -19,7 +19,6 @@ async function getProblemWithTestcases(eventId: string, problemId: string, showA
         .where("eventId", "==", eventId)
         .where("problemId", "==", problemId)
         .where("type", "==", "sample")
-        .orderBy("orderIndex", "asc")
         .get(),
     ]);
 
@@ -35,12 +34,14 @@ async function getProblemWithTestcases(eventId: string, problemId: string, showA
       timeLimitMs: d.timeLimitMs as number,
       isPublished: d.isPublished as boolean,
       updatedAt: (d.updatedAt as Timestamp).toDate().toISOString(),
-      samples: testcasesSnap.docs.map((t) => ({
-        id: t.id,
-        input: t.data().input as string,
-        expectedOutput: t.data().expectedOutput as string,
-        orderIndex: t.data().orderIndex as number,
-      })),
+      samples: testcasesSnap.docs
+        .map((t) => ({
+          id: t.id,
+          input: t.data().input as string,
+          expectedOutput: t.data().expectedOutput as string,
+          orderIndex: t.data().orderIndex as number,
+        }))
+        .sort((a, b) => a.orderIndex - b.orderIndex),
     };
   } catch (error) {
     console.error("Failed to render problem page", error);

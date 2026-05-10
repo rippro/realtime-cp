@@ -36,7 +36,7 @@ export async function GET(
     testcasesQuery = testcasesQuery.where("type", "==", "sample") as typeof testcasesQuery;
   }
   try {
-    const testcasesSnap = await testcasesQuery.orderBy("orderIndex", "asc").get();
+    const testcasesSnap = await testcasesQuery.get();
     return NextResponse.json({
       eventId: d.eventId,
       id: d.id,
@@ -47,16 +47,18 @@ export async function GET(
       compareMode: d.compareMode,
       isPublished: d.isPublished,
       creatorUid: d.creatorUid ?? null,
-      testcases: testcasesSnap.docs.map((doc) => {
-        const testcase = doc.data();
-        return {
-          id: doc.id,
-          type: testcase.type,
-          input: testcase.input,
-          expectedOutput: testcase.expectedOutput,
-          orderIndex: testcase.orderIndex,
-        };
-      }),
+      testcases: testcasesSnap.docs
+        .map((doc) => {
+          const testcase = doc.data();
+          return {
+            id: doc.id,
+            type: testcase.type,
+            input: testcase.input,
+            expectedOutput: testcase.expectedOutput,
+            orderIndex: testcase.orderIndex,
+          };
+        })
+        .sort((a, b) => a.orderIndex - b.orderIndex),
       createdAt: (d.createdAt as Timestamp).toDate().toISOString(),
       updatedAt: (d.updatedAt as Timestamp).toDate().toISOString(),
     });

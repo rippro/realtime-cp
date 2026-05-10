@@ -110,7 +110,6 @@ export function GlobalNav() {
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-0.5">
-              <span className="text-[11px] text-rp-muted tracking-widest uppercase mr-2 hidden sm:block">競プロ</span>
               <span className="font-bold text-base tracking-tight text-rp-100">
                 RipPro
               </span>

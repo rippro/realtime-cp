@@ -35,8 +35,11 @@ export function generateCliToken(): string {
   return `rj_live_${randomBytes(24).toString("base64url")}`;
 }
 
+const UNAMBIGUOUS = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
+
 export function generateInviteCode(): string {
-  return randomBytes(18).toString("base64url");
+  const bytes = randomBytes(5);
+  return Array.from(bytes, (b) => UNAMBIGUOUS[b % UNAMBIGUOUS.length]).join("");
 }
 
 export function newId(): string {

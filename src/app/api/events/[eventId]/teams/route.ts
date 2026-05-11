@@ -1,15 +1,12 @@
-import { NextResponse } from "next/server";
-import { getAdminFirestore } from "@/lib/firebase/admin";
-import { getSession } from "@/lib/auth/session";
 import { Timestamp } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/session";
+import { getAdminFirestore } from "@/lib/firebase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
   const session = await getSession();
@@ -56,10 +53,7 @@ export async function GET(
   return NextResponse.json({ teams });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
   const session = await getSession();
@@ -80,7 +74,24 @@ export async function POST(
   }
 
   const { generateInviteCode, sha256Hex, newId } = await import("@/lib/judge/crypto");
-  const inviteCode = generateInviteCode();
+  const existingTeamsSnap = await db.collection("teams").where("eventId", "==", eventId).get();
+  const existingInviteCodeHashes = new Set(
+    existingTeamsSnap.docs.map((doc) => String(doc.data().inviteCodeHash ?? "")),
+  );
+  let inviteCode = "";
+  let inviteCodeHash = "";
+  for (let attempt = 0; attempt < 16; attempt += 1) {
+    const candidate = generateInviteCode();
+    const candidateHash = sha256Hex(candidate);
+    if (!existingInviteCodeHashes.has(candidateHash)) {
+      inviteCode = candidate;
+      inviteCodeHash = candidateHash;
+      break;
+    }
+  }
+  if (!inviteCode || !inviteCodeHash) {
+    return NextResponse.json({ error: "Invite code generation failed" }, { status: 500 });
+  }
   const teamId = newId();
   const createdAt = new Date();
 
@@ -89,14 +100,20 @@ export async function POST(
     if (!userSnap.exists) throw new Error("User not found");
 
     const teamRef = db.collection("teams").doc(teamId);
-    const memberRef = db.collection("teamMembers").doc(
-      [teamId, session.userId].map((s) => s.replaceAll("_", "__")).join("_"),
-    );
+    const inviteCodeRef = db.collection("_teamInviteCodes").doc(teamId);
+    const memberRef = db
+      .collection("teamMembers")
+      .doc([teamId, session.userId].map((s) => s.replaceAll("_", "__")).join("_"));
 
     tx.create(teamRef, {
       eventId,
       name: name.trim(),
-      inviteCodeHash: sha256Hex(inviteCode),
+      inviteCodeHash,
+      createdAt: Timestamp.fromDate(createdAt),
+    });
+    tx.create(inviteCodeRef, {
+      teamId,
+      inviteCode,
       createdAt: Timestamp.fromDate(createdAt),
     });
     tx.create(memberRef, {

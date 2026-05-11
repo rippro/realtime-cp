@@ -27,7 +27,10 @@ export async function POST(request: Request) {
   return NextResponse.json({ id: eventId, isActive: data.isActive }, { status: 201 });
 }
 
-async function batchDelete(db: ReturnType<typeof getAdminFirestore>, refs: FirebaseFirestore.DocumentReference[]) {
+async function batchDelete(
+  db: ReturnType<typeof getAdminFirestore>,
+  refs: FirebaseFirestore.DocumentReference[],
+) {
   // Firestore batch limit = 500
   for (let i = 0; i < refs.length; i += 500) {
     const batch = db.batch();
@@ -61,9 +64,7 @@ export async function DELETE(request: Request) {
     Promise.all(
       teamIds.map((tid) => db.collection("teamMembers").where("teamId", "==", tid).get()),
     ),
-    Promise.all(
-      teamIds.map((tid) => db.collection("cliTokens").where("teamId", "==", tid).get()),
-    ),
+    Promise.all(teamIds.map((tid) => db.collection("cliTokens").where("teamId", "==", tid).get())),
   ]);
 
   const refs: FirebaseFirestore.DocumentReference[] = [
@@ -73,6 +74,7 @@ export async function DELETE(request: Request) {
     ...testcasesSnap.docs.map((d) => d.ref),
     ...solvesSnap.docs.map((d) => d.ref),
     ...teamMembersSnaps.flatMap((s) => s.docs.map((d) => d.ref)),
+    ...teamIds.map((tid) => db.collection("_teamInviteCodes").doc(tid)),
   ];
 
   const cliTokenDocs = cliTokensSnaps.flatMap((s) => s.docs);

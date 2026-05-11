@@ -43,7 +43,7 @@ export function generateUnambiguousCode(length: number): string {
 }
 
 export function generateInviteCode(): string {
-  return generateUnambiguousCode(5);
+  return generateUnambiguousCode(4);
 }
 
 export function generateProblemId(): string {

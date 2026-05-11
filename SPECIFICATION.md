@@ -71,7 +71,7 @@ teamMembers
   unique(teamId, userId)
 ```
 
-招待コードは5文字のCrockford base32（誤読しにくい文字のみ）。チーム作成時に一度だけ表示する。
+招待コードは4文字のCrockford base32（誤読しにくい文字のみ）。チーム作成時に一度だけ表示する。
 
 ---
 

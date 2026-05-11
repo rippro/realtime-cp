@@ -61,6 +61,7 @@ export async function createAdminTeam(
     name: readString(input, "name"),
     adminUserId: readOptionalId(input, "adminUserId") ?? readId(input, "ownerUserId"),
     inviteCodeHash: sha256Hex(inviteCode),
+    inviteCode,
     createdAt: new Date(),
   });
 

@@ -43,6 +43,7 @@ export interface JudgeAdminRepository {
     eventId: string;
     name: string;
     inviteCodeHash: string;
+    inviteCode?: string;
     adminUserId: string;
     createdAt: Date;
   }): Promise<{ team: Team; adminMembership: TeamMember }>;
@@ -126,9 +127,7 @@ export class FirestoreJudgeRepository implements JudgeRepository {
           transaction.get(this.db.collection("users").doc(input.userId)),
           transaction.get(this.db.collection("teams").doc(input.teamId)),
           transaction.get(
-            this.db
-              .collection("problems")
-              .doc(problemDocumentId(input.eventId, input.problemId)),
+            this.db.collection("problems").doc(problemDocumentId(input.eventId, input.problemId)),
           ),
           transaction.get(solveRef),
           Promise.all(
@@ -203,12 +202,9 @@ export class FirestoreJudgeAdminRepository
   }
 
   async createEvent(input: Event): Promise<Event> {
-    await this.db
-      .collection("events")
-      .doc(input.id)
-      .create({
-        isActive: input.isActive,
-      });
+    await this.db.collection("events").doc(input.id).create({
+      isActive: input.isActive,
+    });
 
     return input;
   }
@@ -218,6 +214,7 @@ export class FirestoreJudgeAdminRepository
     eventId: string;
     name: string;
     inviteCodeHash: string;
+    inviteCode?: string;
     adminUserId: string;
     createdAt: Date;
   }): Promise<{ team: Team; adminMembership: TeamMember }> {
@@ -250,6 +247,13 @@ export class FirestoreJudgeAdminRepository
         inviteCodeHash: team.inviteCodeHash,
         createdAt: Timestamp.fromDate(team.createdAt),
       });
+      if (input.inviteCode) {
+        transaction.create(this.db.collection("_teamInviteCodes").doc(team.id), {
+          teamId: team.id,
+          inviteCode: input.inviteCode,
+          createdAt: Timestamp.fromDate(team.createdAt),
+        });
+      }
       transaction.create(
         this.db
           .collection("teamMembers")

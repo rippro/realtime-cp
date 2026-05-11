@@ -1,7 +1,7 @@
 "use client";
 
 import { collection, onSnapshot, query, type Timestamp, where } from "firebase/firestore";
-import { Check, Copy, Plus, TriangleAlert } from "lucide-react";
+import { Check, Copy, LogIn, Plus, TriangleAlert } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,6 +137,139 @@ function CreateTeamForm({ eventId, onCreated }: { eventId: string; onCreated: (t
   );
 }
 
+function MyTeamInviteCode({ eventId, refreshKey }: { eventId: string; refreshKey: number }) {
+  const [teamName, setTeamName] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/events/${eventId}/teams/invite?refresh=${refreshKey}`)
+      .then((res) => res.json() as Promise<{ teamName: string | null; inviteCode: string | null }>)
+      .then((data) => {
+        if (cancelled) return;
+        setTeamName(data.teamName);
+        setInviteCode(data.inviteCode);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTeamName(null);
+        setInviteCode(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId, refreshKey]);
+
+  function copy(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  if (!teamName) return null;
+
+  return (
+    <div className="card-surface p-5 mb-6 space-y-3">
+      <div>
+        <h3 className="font-display text-sm font-semibold text-rp-100">所属チーム</h3>
+        <p className="text-sm text-rp-muted mt-1">{teamName}</p>
+      </div>
+      {inviteCode ? (
+        <div className="flex items-center gap-2">
+          <code className="flex-1 rounded-lg bg-rp-800 border border-rp-border px-4 py-3 text-sm font-mono text-rp-300 overflow-x-auto">
+            {inviteCode}
+          </code>
+          <button
+            type="button"
+            onClick={() => copy(inviteCode)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-rp-border text-rp-muted transition-colors hover:border-rp-500 hover:text-rp-100"
+            aria-label="コピー"
+          >
+            {copied ? (
+              <Check aria-hidden="true" size={14} />
+            ) : (
+              <Copy aria-hidden="true" size={14} />
+            )}
+          </button>
+        </div>
+      ) : (
+        <p className="text-xs text-rp-warning">
+          このチームの招待コードは保存されていないため表示できません。
+        </p>
+      )}
+    </div>
+  );
+}
+
+function JoinTeamForm({ eventId, onJoined }: { eventId: string; onJoined: () => void }) {
+  const [inviteCode, setInviteCode] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState("");
+  const [joinedTeamName, setJoinedTeamName] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setJoining(true);
+    setError("");
+    setJoinedTeamName("");
+    try {
+      const res = await fetch(`/api/events/${eventId}/teams/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode }),
+      });
+      const d = (await res.json()) as { name?: string; error?: string };
+      if (!res.ok) {
+        setError(d.error ?? "参加失敗");
+        return;
+      }
+      setJoinedTeamName(d.name ?? "");
+      setInviteCode("");
+      onJoined();
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  return (
+    <div className="card-surface p-5 mb-6">
+      <h3 className="font-display text-sm font-semibold text-rp-100 mb-4">招待コードで参加</h3>
+      <form onSubmit={submit} className="flex gap-3 items-end">
+        <div className="w-40">
+          <label htmlFor="invite-code" className="block text-xs text-rp-muted mb-1">
+            招待コード
+          </label>
+          <input
+            id="invite-code"
+            required
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value.toUpperCase().slice(0, 4))}
+            minLength={4}
+            maxLength={4}
+            placeholder="AB23"
+            className="input-field w-full text-sm font-mono uppercase"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={joining || inviteCode.length !== 4}
+          className="btn-primary inline-flex items-center gap-1.5 py-2 px-4 text-sm disabled:opacity-50"
+        >
+          <LogIn aria-hidden="true" size={14} />
+          {joining ? "参加中..." : "参加"}
+        </button>
+        {error && <p className="text-xs text-rp-accent pb-2">{error}</p>}
+        {joinedTeamName && (
+          <p className="text-xs text-rp-success pb-2">{joinedTeamName} に参加しました</p>
+        )}
+      </form>
+    </div>
+  );
+}
+
 export default function TeamsPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const { session, loading: authLoading } = useAuth();
@@ -145,6 +278,7 @@ export default function TeamsPage() {
   const [solves, setSolves] = useState<Solve[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [inviteRefreshKey, setInviteRefreshKey] = useState(0);
 
   useEffect(() => {
     const db = getClientFirestore();
@@ -242,7 +376,17 @@ export default function TeamsPage() {
       </div>
 
       {isSolver && (
-        <CreateTeamForm eventId={eventId} onCreated={(t) => setTeams((ts) => [t, ...ts])} />
+        <>
+          <MyTeamInviteCode eventId={eventId} refreshKey={inviteRefreshKey} />
+          <CreateTeamForm
+            eventId={eventId}
+            onCreated={(t) => {
+              setTeams((ts) => [t, ...ts]);
+              setInviteRefreshKey((key) => key + 1);
+            }}
+          />
+          <JoinTeamForm eventId={eventId} onJoined={() => setInviteRefreshKey((key) => key + 1)} />
+        </>
       )}
 
       {loading ? (

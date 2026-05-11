@@ -21,6 +21,9 @@
     --rp-highlight: #3451b2;
     --rp-highlight-tint: #eef1fb;
     --rp-success: #0c6044;
+    --rp-success-surface: #dff2e9;
+    --rp-success-surface-hover: #d2ecdf;
+    --rp-success-border: #8ac7ac;
     --rp-warning: #7a4f00;
     --rp-border: #e2e2de;
 
@@ -61,6 +64,9 @@
     --rp-highlight: #6b8de0;
     --rp-highlight-tint: #1a2240;
     --rp-success: #2aaa7a;
+    --rp-success-surface: #123328;
+    --rp-success-surface-hover: #173f31;
+    --rp-success-border: #23684f;
     --rp-warning: #cc9922;
     --rp-border: #2a2a2a;
 

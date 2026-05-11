@@ -258,8 +258,10 @@ export function RealtimeProblemsList({
             <Link
               key={problem.id}
               href={`/events/${eventId}/problems/${problem.id}`}
-              className={`flex items-center gap-4 py-4 -mx-4 px-4 group transition-colors ${
-                solved ? "bg-rp-success/5 hover:bg-rp-success/10" : "hover:bg-rp-800"
+              className={`group -mx-4 flex items-center gap-4 border-l-4 px-4 py-4 transition-colors ${
+                solved
+                  ? "border-l-rp-success bg-[var(--rp-success-surface)] shadow-[inset_0_0_0_1px_var(--rp-success-border)] hover:bg-[var(--rp-success-surface-hover)]"
+                  : "border-l-transparent hover:bg-rp-800"
               }`}
             >
               <div
@@ -280,11 +282,10 @@ export function RealtimeProblemsList({
                   {problem.title}
                 </h2>
                 {solved && (
-                  <CheckCircle2
-                    aria-label="AC"
-                    size={14}
-                    className="flex-shrink-0 text-rp-success"
-                  />
+                  <span className="inline-flex flex-shrink-0 items-center gap-1 rounded bg-rp-success px-2 py-0.5 text-[11px] font-bold leading-4 text-white dark:text-rp-900">
+                    <CheckCircle2 aria-hidden="true" size={13} />
+                    <span>AC</span>
+                  </span>
                 )}
               </div>
               <div

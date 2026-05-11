@@ -5,6 +5,19 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 
 export const revalidate = 30;
 
+type EventStatus = "waiting" | "live" | "ended";
+
+function normalizeEventStatus(value: unknown, isActive: boolean): EventStatus {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return isActive ? "live" : "waiting";
+}
+
+function eventStatusLabel(status: EventStatus) {
+  if (status === "live") return "大会中";
+  if (status === "ended") return "終了後";
+  return "待機";
+}
+
 interface PageProps {
   params: Promise<{ eventId: string }>;
 }
@@ -27,6 +40,7 @@ async function getEventData(eventId: string) {
     return {
       id: eventSnap.id,
       isActive: d.isActive as boolean,
+      status: normalizeEventStatus(d.status, Boolean(d.isActive)),
       startsAt: (d.startsAt as Timestamp).toDate(),
       problemCount: problemsSnap.size,
       publishedCount: problemsSnap.docs.filter((p) => p.data().isPublished).length,
@@ -52,10 +66,8 @@ export default async function EventHomePage({ params }: PageProps) {
     );
   }
 
-  const now = new Date();
-  const started = now >= event.startsAt;
-  const isLive = event.isActive && started;
-  const statusLabel = event.isActive ? (started ? "LIVE" : "UPCOMING") : "DRAFT";
+  const isLive = event.status === "live";
+  const statusLabel = eventStatusLabel(event.status);
 
   const stats = [
     { label: "公開問題", value: event.publishedCount, total: event.problemCount },

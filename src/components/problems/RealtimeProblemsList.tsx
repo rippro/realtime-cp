@@ -39,6 +39,12 @@ interface TeamMember {
 }
 
 type SortMode = "id" | "pointsAsc" | "pointsDesc";
+type EventStatus = "waiting" | "live" | "ended";
+
+function normalizeEventStatus(value: unknown, isActive: boolean): EventStatus {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return isActive ? "live" : "waiting";
+}
 
 function timestampToIso(value: unknown): string {
   if (value && typeof (value as Timestamp).toDate === "function") {
@@ -54,7 +60,7 @@ export function RealtimeProblemsList({
   eventId: string;
   solverUserId: string | null;
 }) {
-  const [isActive, setIsActive] = useState<boolean | null>(null);
+  const [eventStatus, setEventStatus] = useState<EventStatus | null>(null);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [solves, setSolves] = useState<Solve[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -67,7 +73,14 @@ export function RealtimeProblemsList({
     const unsubscribers = [
       onSnapshot(
         doc(db, "events", eventId),
-        (snapshot) => setIsActive(snapshot.exists() && Boolean(snapshot.data().isActive)),
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            setEventStatus("waiting");
+            return;
+          }
+          const data = snapshot.data();
+          setEventStatus(normalizeEventStatus(data.status, Boolean(data.isActive)));
+        },
         (err) => setError(err.message),
       ),
       onSnapshot(
@@ -194,7 +207,7 @@ export function RealtimeProblemsList({
     );
   }
 
-  if (isActive === null) {
+  if (eventStatus === null) {
     return (
       <div className="py-20 text-center">
         <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-rp-400 border-t-transparent" />
@@ -202,7 +215,7 @@ export function RealtimeProblemsList({
     );
   }
 
-  if (!isActive) {
+  if (eventStatus === "waiting") {
     return (
       <div className="py-20 text-center">
         <p className="text-rp-muted text-sm">待機中</p>

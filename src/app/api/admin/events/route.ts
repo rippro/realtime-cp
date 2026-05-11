@@ -5,6 +5,13 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type EventStatus = "waiting" | "live" | "ended";
+
+function normalizeStatus(value: unknown, fallbackIsActive = false): EventStatus {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return fallbackIsActive ? "live" : "waiting";
+}
+
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session || session.role !== "admin") {
@@ -20,11 +27,13 @@ export async function POST(request: Request) {
   if ((await ref.get()).exists)
     return NextResponse.json({ error: "Event already exists" }, { status: 409 });
 
+  const status = normalizeStatus(body.status, Boolean(body.isActive ?? false));
   const data = {
-    isActive: Boolean(body.isActive ?? false),
+    isActive: status === "live",
+    status,
   };
   await ref.set(data);
-  return NextResponse.json({ id: eventId, isActive: data.isActive }, { status: 201 });
+  return NextResponse.json({ id: eventId, isActive: data.isActive, status }, { status: 201 });
 }
 
 async function batchDelete(
@@ -103,12 +112,22 @@ export async function PATCH(request: Request) {
   const snap = await ref.get();
   if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const current = snap.data();
   const updates: Record<string, unknown> = {};
-  if (body.isActive !== undefined) updates.isActive = Boolean(body.isActive);
+  if (body.status !== undefined) {
+    const status = normalizeStatus(body.status, Boolean(current?.isActive));
+    updates.status = status;
+    updates.isActive = status === "live";
+  } else if (body.isActive !== undefined) {
+    const isActive = Boolean(body.isActive);
+    updates.isActive = isActive;
+    updates.status = isActive ? "live" : "waiting";
+  }
 
   await ref.update(updates);
   const updated = await ref.get();
   const d = updated.data();
   if (!d) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ id: eventId, isActive: d.isActive as boolean });
+  const status = normalizeStatus(d.status, Boolean(d.isActive));
+  return NextResponse.json({ id: eventId, isActive: status === "live", status });
 }

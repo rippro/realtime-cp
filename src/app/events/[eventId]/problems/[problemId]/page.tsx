@@ -1,6 +1,6 @@
 import type { Timestamp } from "firebase-admin/firestore";
 import { notFound } from "next/navigation";
-import { MarkdownView } from "@/components/problems/MarkdownView";
+import { ProblemContentTabs } from "@/components/problems/ProblemContentTabs";
 import { getSession } from "@/lib/auth/session";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 
@@ -12,19 +12,31 @@ async function getProblem(eventId: string, problemId: string, showAll: boolean) 
   try {
     const db = getAdminFirestore();
     const docId = `${eventId}_${problemId}`;
-    const snap = await db.collection("problems").doc(docId).get();
+    const [snap, eventSnap] = await Promise.all([
+      db.collection("problems").doc(docId).get(),
+      db.collection("events").doc(eventId).get(),
+    ]);
 
-    if (!snap.exists) return null;
+    if (!snap.exists || !eventSnap.exists) return null;
     const d = snap.data();
-    if (!d) return null;
+    const eventData = eventSnap.data();
+    if (!d || !eventData) return null;
     if (!d.isPublished && !showAll) return null;
+    const eventStatus =
+      eventData.status === "waiting" || eventData.status === "live" || eventData.status === "ended"
+        ? eventData.status
+        : eventData.isActive
+          ? "live"
+          : "waiting";
 
     return {
       id: d.id as string,
       title: d.title as string,
       statement: d.statement as string,
+      solutionCode: String(d.solutionCode ?? ""),
       timeLimitMs: d.timeLimitMs as number,
       isPublished: d.isPublished as boolean,
+      eventStatus,
       updatedAt: (d.updatedAt as Timestamp).toDate().toISOString(),
     };
   } catch (error) {
@@ -66,7 +78,11 @@ export default async function ProblemPage({ params }: PageProps) {
       </div>
 
       <section>
-        <MarkdownView source={problem.statement} />
+        <ProblemContentTabs
+          statement={problem.statement}
+          solutionCode={problem.solutionCode}
+          showSolution={problem.eventStatus === "ended"}
+        />
       </section>
     </div>
   );

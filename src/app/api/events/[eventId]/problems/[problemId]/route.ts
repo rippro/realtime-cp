@@ -11,6 +11,11 @@ function docId(eventId: string, problemId: string) {
   return `${eventId}_${problemId}`;
 }
 
+function normalizeEventStatus(value: unknown, isActive: boolean) {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return isActive ? "live" : "waiting";
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ eventId: string; problemId: string }> },
@@ -20,7 +25,10 @@ export async function GET(
   const problemId = decodeURIComponent(_rawProblemId);
   const session = await getSession();
   const db = getAdminFirestore();
-  const snap = await db.collection("problems").doc(docId(eventId, problemId)).get();
+  const [snap, eventSnap] = await Promise.all([
+    db.collection("problems").doc(docId(eventId, problemId)).get(),
+    db.collection("events").doc(eventId).get(),
+  ]);
   if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const d = snap.data();
@@ -30,6 +38,9 @@ export async function GET(
   }
   // solvers see no testcases (all are hidden; samples are in the statement markdown)
   const canViewTestcases = session && session.role !== "solver";
+  const eventData = eventSnap.data();
+  const eventStatus = normalizeEventStatus(eventData?.status, Boolean(eventData?.isActive));
+  const canViewSolution = canViewTestcases || eventStatus === "ended";
   const testcasesQuery = canViewTestcases
     ? db.collection("testcases").where("eventId", "==", eventId).where("problemId", "==", problemId)
     : null;
@@ -40,7 +51,7 @@ export async function GET(
       id: d.id,
       title: d.title,
       statement: d.statement,
-      solutionCode: d.solutionCode ?? "",
+      solutionCode: canViewSolution ? (d.solutionCode ?? "") : "",
       timeLimitMs: d.timeLimitMs,
       points: d.points ?? 100,
       compareMode: d.compareMode,

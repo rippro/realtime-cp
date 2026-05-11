@@ -4,6 +4,11 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function normalizeStatus(value: unknown, fallbackIsActive = false) {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return fallbackIsActive ? "live" : "waiting";
+}
+
 export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   const { eventId: _rawEventId } = await params;
   const eventId = decodeURIComponent(_rawEventId);
@@ -26,6 +31,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ eve
   return NextResponse.json({
     id: eventSnap.id,
     isActive: d.isActive as boolean,
+    status: normalizeStatus(d.status, Boolean(d.isActive)),
     problemCount: problemsSnap.size,
     teamCount: teamsSnap.size,
   });

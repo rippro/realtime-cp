@@ -1,6 +1,7 @@
 export type TeamRole = "admin" | "creator" | "solver";
 export type JudgeStatus = "AC" | "WA" | "TLE" | "RE" | "CE" | "IE";
 export type CompareMode = "trimmed-exact";
+export type EventStatus = "waiting" | "live" | "ended";
 
 export interface User {
   id: string;
@@ -38,6 +39,7 @@ export interface CliToken {
 export interface Event {
   id: string;
   isActive: boolean;
+  status: EventStatus;
 }
 
 export interface Problem {

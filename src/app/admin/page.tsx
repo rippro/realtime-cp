@@ -9,9 +9,22 @@ import { GlobalNav } from "@/components/nav/GlobalNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClientFirestore } from "@/lib/auth/firebase-client";
 
+type EventStatus = "waiting" | "live" | "ended";
+
+const eventStatusOptions: { value: EventStatus; label: string; badge: string }[] = [
+  { value: "waiting", label: "待機", badge: "WAITING" },
+  { value: "live", label: "大会中", badge: "LIVE" },
+  { value: "ended", label: "終了後", badge: "ENDED" },
+];
+
+function normalizeEventStatus(value: unknown, isActive: boolean): EventStatus {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return isActive ? "live" : "waiting";
+}
+
 function EventForm({ onCreated }: { onCreated: (e: Event) => void }) {
   const [id, setId] = useState("");
-  const [isActive, setIsActive] = useState(false);
+  const [status, setStatus] = useState<EventStatus>("waiting");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +36,7 @@ function EventForm({ onCreated }: { onCreated: (e: Event) => void }) {
       const r = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId: id, isActive }),
+        body: JSON.stringify({ eventId: id, status }),
       });
       const data = (await r.json()) as Event & { error?: string };
       if (!r.ok) {
@@ -32,7 +45,7 @@ function EventForm({ onCreated }: { onCreated: (e: Event) => void }) {
       }
       onCreated(data);
       setId("");
-      setIsActive(false);
+      setStatus("waiting");
     } finally {
       setSaving(false);
     }
@@ -55,15 +68,21 @@ function EventForm({ onCreated }: { onCreated: (e: Event) => void }) {
         />
       </div>
       <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-rp-muted">
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="w-4 h-4 accent-rp-400"
-          />
-          作成と同時に公開 (isActive)
+        <label htmlFor="event-status" className="text-sm text-rp-muted">
+          状態
         </label>
+        <select
+          id="event-status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as EventStatus)}
+          className="input-field w-auto min-w-32 py-1.5 text-sm"
+        >
+          {eventStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
         {error && <p className="text-xs text-rp-accent">{error}</p>}
         <button
           type="submit"
@@ -163,6 +182,7 @@ interface User {
 interface Event {
   id: string;
   isActive: boolean;
+  status: EventStatus;
   problemCount?: number;
   teamCount?: number;
 }
@@ -211,7 +231,7 @@ export default function AdminPage() {
   const [allProblems, setAllProblems] = useState<Problem[]>([]);
   const [deleteUserConfirm, setDeleteUserConfirm] = useState<string | null>(null);
   const [deleteEventConfirm, setDeleteEventConfirm] = useState<string | null>(null);
-  const [togglingEvent, setTogglingEvent] = useState<string | null>(null);
+  const [updatingEventStatus, setUpdatingEventStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -240,6 +260,10 @@ export default function AdminPage() {
             .map((eventDoc) => ({
               id: eventDoc.id,
               isActive: Boolean(eventDoc.data().isActive),
+              status: normalizeEventStatus(
+                eventDoc.data().status,
+                Boolean(eventDoc.data().isActive),
+              ),
             }))
             .sort((a, b) => a.id.localeCompare(b.id)),
         );
@@ -271,19 +295,21 @@ export default function AdminPage() {
     setDeleteEventConfirm(null);
   }
 
-  async function toggleEventActive(eventId: string, current: boolean) {
-    setTogglingEvent(eventId);
+  async function updateEventStatus(eventId: string, status: EventStatus) {
+    setUpdatingEventStatus(eventId);
     try {
       const r = await fetch("/api/admin/events", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, isActive: !current }),
+        body: JSON.stringify({ eventId, status }),
       });
       if (r.ok) {
-        setEvents((es) => es.map((e) => (e.id === eventId ? { ...e, isActive: !current } : e)));
+        setEvents((es) =>
+          es.map((e) => (e.id === eventId ? { ...e, isActive: status === "live", status } : e)),
+        );
       }
     } finally {
-      setTogglingEvent(null);
+      setUpdatingEventStatus(null);
     }
   }
 
@@ -365,26 +391,33 @@ export default function AdminPage() {
                         </span>
                         <span
                           className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
-                            e.isActive ? "badge-live" : "text-rp-muted border-rp-border"
+                            e.status === "live"
+                              ? "badge-live"
+                              : e.status === "ended"
+                                ? "border-rp-success/40 text-rp-success bg-rp-success/10"
+                                : "text-rp-muted border-rp-border"
                           }`}
                         >
-                          {e.isActive ? "LIVE" : "DRAFT"}
+                          {eventStatusOptions.find((option) => option.value === e.status)?.badge}
                         </span>
                       </div>
                     </div>
                     <div className="flex gap-2 items-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleEventActive(e.id, e.isActive)}
-                        disabled={togglingEvent === e.id}
-                        className={`text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-50 ${
-                          e.isActive
-                            ? "border-rp-success/40 text-rp-success hover:bg-rp-success/10"
-                            : "border-rp-border text-rp-muted hover:text-rp-100 hover:bg-rp-700"
-                        }`}
+                      <select
+                        value={e.status}
+                        onChange={(event) =>
+                          void updateEventStatus(e.id, event.target.value as EventStatus)
+                        }
+                        disabled={updatingEventStatus === e.id}
+                        className="input-field w-auto min-w-28 py-1.5 text-xs disabled:opacity-50"
+                        aria-label={`${e.id} の状態`}
                       >
-                        {e.isActive ? "公開中" : "非公開"}
-                      </button>
+                        {eventStatusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       <Link
                         href={`/events/${e.id}`}
                         className="btn-ghost inline-flex items-center gap-1.5 py-1.5 px-3 text-xs"

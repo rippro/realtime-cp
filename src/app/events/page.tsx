@@ -4,6 +4,19 @@ import { GlobalNav } from "@/components/nav/GlobalNav";
 
 export const revalidate = 60;
 
+type EventStatus = "waiting" | "live" | "ended";
+
+function normalizeEventStatus(value: unknown, isActive: boolean): EventStatus {
+  if (value === "waiting" || value === "live" || value === "ended") return value;
+  return isActive ? "live" : "waiting";
+}
+
+function eventStatusLabel(status: EventStatus) {
+  if (status === "live") return "大会中";
+  if (status === "ended") return "終了後";
+  return "待機";
+}
+
 async function getEvents() {
   try {
     const { getAdminFirestore } = await import("@/lib/firebase/admin");
@@ -14,6 +27,7 @@ async function getEvents() {
       return {
         id: doc.id,
         isActive: d.isActive as boolean,
+        status: normalizeEventStatus(d.status, Boolean(d.isActive)),
       };
     });
   } catch {
@@ -65,7 +79,7 @@ export default async function EventsPage() {
                           event.isActive ? "badge-live" : "badge-inactive"
                         }`}
                       >
-                        {event.isActive ? "LIVE" : "DRAFT"}
+                        {eventStatusLabel(event.status)}
                       </span>
                       <ArrowRight
                         aria-hidden="true"

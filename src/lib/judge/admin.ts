@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { generateCliToken, generateInviteCode, hashPassword, sha256Hex } from "./crypto";
 import { badRequest, forbidden, JudgeError, unauthorized } from "./errors";
 import { createJudgeAdminRepository } from "./repository";
-import type { CompareMode, Event, Problem, TeamRole } from "./types";
+import type { CompareMode, Event, EventStatus, Problem, TeamRole } from "./types";
 
 export async function withAdmin<T>(
   request: Request,
@@ -41,9 +41,12 @@ export async function createAdminEvent(
   body: unknown,
 ) {
   const input = readRecord(body);
+  const status = readOptionalEventStatus(input, "status");
+  const isActive = status ? status === "live" : (readOptionalBoolean(input, "isActive") ?? false);
   const event: Event = {
     id: readSlug(input, "id"),
-    isActive: readOptionalBoolean(input, "isActive") ?? false,
+    isActive,
+    status: status ?? (isActive ? "live" : "waiting"),
   };
   const created = await repository.createEvent(event);
 
@@ -247,6 +250,17 @@ function readOptionalBoolean(record: Record<string, unknown>, key: string): bool
     throw badRequest(`${key} must be a boolean`);
   }
   return value;
+}
+
+function readOptionalEventStatus(record: Record<string, unknown>, key: string): EventStatus | null {
+  const value = record[key];
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  if (value === "waiting" || value === "live" || value === "ended") {
+    return value;
+  }
+  throw badRequest(`${key} must be waiting, live, or ended`);
 }
 
 function readPositiveInteger(record: Record<string, unknown>, key: string): number {

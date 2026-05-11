@@ -204,6 +204,7 @@ export class FirestoreJudgeAdminRepository
   async createEvent(input: Event): Promise<Event> {
     await this.db.collection("events").doc(input.id).create({
       isActive: input.isActive,
+      status: input.status,
     });
 
     return input;
@@ -415,9 +416,19 @@ function toTeamMember(doc: QueryDocumentSnapshot): TeamMember {
 
 function toEvent(doc: QueryDocumentSnapshot): Event {
   const data = doc.data();
+  const isActive = readBoolean(data, "isActive");
+  const rawStatus = typeof data.status === "string" ? data.status : null;
+  const status =
+    rawStatus === "waiting" || rawStatus === "live" || rawStatus === "ended"
+      ? rawStatus
+      : isActive
+        ? "live"
+        : "waiting";
+
   return {
     id: doc.id,
-    isActive: readBoolean(data, "isActive"),
+    isActive,
+    status,
   };
 }
 

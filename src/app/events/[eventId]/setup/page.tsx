@@ -24,15 +24,21 @@ export default async function SetupPage({ params }: PageProps) {
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-rp-100 mb-2">2. 初期化</h2>
+          <h2 className="text-sm font-semibold text-rp-100 mb-2">2. ログイン</h2>
+          <SetupCodeBlock code={`Teamsタブでチームを作成、または既存のチームに、招待コードを入力することで参加`} />
+        </section>
+
+        <section>
+          <h2 className="text-sm font-semibold text-rp-100 mb-2">3. 初期化</h2>
           <SetupCodeBlock code={`rj init`} />
         </section>
+
 
         <SetupTokenSection eventId={eventId} isSolver={isSolver} />
 
         <section>
           <h2 className="text-sm font-semibold text-rp-100 mb-2">4. 提出</h2>
-          <SetupCodeBlock code={`rj submit H7C solution.cpp\nrj submit H7C solution.py`} />
+          <SetupCodeBlock code={`rj submit H7CA solution.cpp\nrj submit H7CA solution.py`} />
         </section>
 
         {(session?.role === "admin" || session?.role === "creator") && (
